@@ -74,6 +74,12 @@ If you wish to read more about how Townscaper saved files are made, you can read
 
 ### Limitations
 
+**When using the most of the commands described below it's necessary to proceed this way :
+1) Enter your command (ex: level -height:7)
+2) On Townscaper, click 'New'
+3) Then click 'Open' and select the most recent file**
+Even so your structure has now changed, you'll notice that the picture is not updated, that's because TownShell does not know how to do it. However, just create one block and remove it to have your file saved again by Townscaper and the picture will be updated too.
+
 For now, TownShell is able to change the color of voxels, change the height of voxels, create voxels on an existing corner.
 
 It cannot create corners from an empty map. Indeed, I have not figure out the algorithm behind grid generation so I'm quite restrained on this side. Hope I get some time or some help to find out and create much more amazing functions.
