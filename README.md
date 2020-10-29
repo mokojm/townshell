@@ -1,5 +1,6 @@
 # TownShell
-![TownShell]
+![TownShell](/Pictures/Townshell.PNG)
+
 Wanna save some clicks on Townscaper, this small command line shell will help you !
 Get additional keyboard shortcuts to relax your fingers while building your town.
 Get access to useful tools to accelerate your building process. Change the height of many blocks with one command. Change the color of your whole structure with a few words.
@@ -79,7 +80,7 @@ It cannot create corners from an empty map. Indeed, I have not figure out the al
 
 ## Getting started with command line TownShell
 ### Startup screen
-[TownShell_get_started]
+![TownShell_get_started](/Pictures/TownShell_start_screen.png)
 
 When starting TownShell the following are displayed :
 1) Right after the title, this line means that TownShell was able to find the place where your Townscaper saved filed are gathered by the game. If not follow these steps :
@@ -95,6 +96,9 @@ All your Townscaper saved files are backup-ed in 'backup' directory on startup. 
 You can write your first command after 'T>'
 
 ### Level
+
+![TownShell_level_example](/Pictures/level_h_7.png)
+
 'level' command give you the ability to elevate your structure at any height (<255) with a bunch of options.
 
 level \<file\> -height:\<n\> -max_height:\<n\> - min_height:\<n\> -plain:<0/1> -color:\<n\> -color_filter:\<n\> -new_file:\<file\> ==> Modify the height of your structure according to \<n\>
@@ -124,6 +128,9 @@ Future releases :
 - 'plain' : more options to have holes 
 
 ### Paint
+
+![Paint_example](/Pictures/paint_c_14.png)
+
 'paint' command give you the ability to change the color of many voxels at a time with a bunch of options
 
 paint \<file\> -color:\<multi\> -color_filter:\<n\> -height:\<multi\> -new_file:\<file\> ==> Modify the color of your structure according to \<n\>
@@ -143,6 +150,9 @@ Future releases:
 - 'color' : add the possibility to alternate several colors
 
 ### Undo and Redo
+
+![Undo_redo_example](/Pictures/undo_redo.png)
+
 'undo' command allows you to make mistakes and get back to the previous state of your masterpiece before your last command was entered.
 
 'redo' command allows you to change your mind and get back to the mistake you had undone.
