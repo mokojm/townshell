@@ -18,6 +18,7 @@ The following features need you to write command in the shell (ex: level -height
 # Installation
 
 If you do not have Python installed on your computer, you can download it and install it from here : https://www.python.org
+
 Once Python is installed on your computer, the following library are necessary : keyboard, mouse, pyreadline. You can install them using 'pip' using windows command line (cmd.exe) :
 
 ```pip install keyboard mouse pyreadline```
@@ -73,10 +74,11 @@ If you wish to read more about how Townscaper saved files are made, you can go t
 
 ### Limitations
 
-**When using the most of the commands described below it's necessary to proceed this way :
-1) Enter your command (ex: level -height:7)
-2) On Townscaper, click 'New'
-3) Then click 'Open' and select the most recent file**
+**When using the most of the commands described below it's necessary to proceed this way :**
+1) **Enter your command (ex: level -height:7)**
+2) **On Townscaper, click 'New'**
+3) **Then click 'Open' and select the most recent file**
+
 Even so your structure has now changed, you'll notice that the picture is not updated, that's because TownShell does not know how to do it. However, just create one block and remove it to have your file saved again by Townscaper and the picture will be updated too.
 
 For now, TownShell is able to change the color of voxels, change the height of voxels, create voxels on an existing corner.
