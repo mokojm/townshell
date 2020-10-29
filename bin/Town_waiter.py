@@ -50,10 +50,10 @@ ALLCOLORS = {
 TOWNSHELL_PATH = "townshell.cfg"
 
 # Directory of backup
-BACKUPTOWN = "..\\backup\\" + datetime.now().strftime("%Y%m%d%H%M%S")
+BACKUPTOWN = "backup\\" + datetime.now().strftime("%Y%m%d%H%M%S")
 
 # Directory for temporary storage
-TEMP = "..\\temp"
+TEMP = "temp"
 
 # Timestamp format
 TIMESTAMP_FORMAT = "%Y/%m/%d %H:%M:%S"
@@ -721,15 +721,15 @@ def init_townshell():
     if exists(TEMP) is False:
         mkdir(TEMP)
 
-    if exists("..\\log") is False:
-        mkdir("..\\log")
+    if exists("log") is False:
+        mkdir("log")
 
     # Archiving of the previous log
-    with open("..\\log\\town.log") as logfile:
-        with open("..\\log\\town_old.log", "a") as old_logfile:
+    with open("log\\town.log") as logfile:
+        with open("log\\town_old.log", "a") as old_logfile:
             old_logfile.write(logfile.read())
 
-    with open("..\\log\\town.log", "w") as logfile:
+    with open("log\\town.log", "w") as logfile:
         logfile.write("")
 
     # Start of new logging
@@ -790,6 +790,9 @@ def init_townshell():
 
     # Start keyboard shortcuts
     start_shortcuts()
+
+    # Print keyboard shortcuts
+    print_shortcuts()
 
     # Look for a job to be read and executed
     job_path = read_cfg("job")
@@ -1028,7 +1031,7 @@ def paint_town(args):
                 color = make_tuple(arg)
 
         # Old color
-        elif key in ("color_filter", "of"):
+        elif key in ("color_filter", "cf"):
 
             # old color needs to be between 0 and 14
             if arg.isnumeric() and 0 <= int(arg) <= 14:
@@ -1286,6 +1289,37 @@ def redo(args):
         stream.warning("No newer version for %s", basename(file_path))
         root.info("No newer file in version for %s", file_path)
 
+# Print the current keyboard shortcuts
+def print_shortcuts():
+
+    #Print whether keyboard shortcuts are active or not
+    if active_shortcuts:
+        print("Keyboard shortcuts : ON")
+    else:
+        print("Keyboard shortcuts : OFF")
+
+    #Fetch shortcuts
+    shortcuts = read_cfg('shortcuts')
+    if shortcuts is None: return
+    shortcuts = iter(shortcuts.items())
+
+    # First shortcuts
+    info_printed = False
+    for key, value in shortcuts:
+
+        if key.startswith('custom') and info_printed is False:
+            print("\nTo get precise amount of clicks, enter quickly a few digits, then use the custom shortcuts below :")
+            info_printed = True
+
+        if key == 'pause':
+            print("\nIntervals between clicks (s) : {}".format(value))
+
+        else:
+            print("'{}' ==> '{}'".format(key, value))
+
+    # How to modify shortcuts
+    print("Shortcuts and intervals can be modified in 'townshell.cfg'")
+
 
 # Class of Thread to have shortcuts handled in another thread
 class ShortcutThread(Thread):
@@ -1297,7 +1331,6 @@ class ShortcutThread(Thread):
     def run(self):
         # Fetch the keyboard shortcuts settings from townshell.cfg
         shortcut(self.event, read_cfg("shortcuts"))
-
 
 # Start a thread activating the keyboard shortcuts
 def start_shortcuts():

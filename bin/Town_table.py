@@ -8,16 +8,15 @@
 import logging
 import sys
 from cmd import Cmd
-from os import chdir, environ
+from os import environ, mkdir
+from os.path import exists
 
 from Town_waiter import *
 
-# Working directory is 'bin'
-chdir('bin')
-
 # Logging objects
 # Main logger
-handler = logging.FileHandler(environ.get("LOGFILE", "..\\log\\town.log"))
+if exists('log') is False: mkdir('log')
+handler = logging.FileHandler(environ.get("LOGFILE", "log\\town.log"))
 formatter = logging.Formatter(
     "{asctime} : [{name}:{funcName}] {levelname} :{message}", style="{"
 )
@@ -50,6 +49,7 @@ Type help or ? to list all commands.\n"""
     intro = "\nWelcome to TownShell !\n" + main_command
     prompt = "T> "
     file = None
+    completekey='tab'
 
     def preloop(self):
         """Initialize the data
@@ -125,8 +125,8 @@ Type help or ? to list all commands.\n"""
         height (h): [mandatory] The height that will be added to the selected structure. Can be negative, the height of the structure will be decreased
         max_height (maxh): [optional] The maximum height for all building in the structure.
         min_height (minh): [optional] The minimum height for all building in the structure.
-        plain (p): [optional] If 0, scaffolding are created below the elevated building. If 1, the created spaces are filled
-        color (c): [optional] color (between 1 and 14) that will be applied to the newly created blocks,
+        plain (p): [optional] If 0 or not filled, the space below the elevated building stays empty. If 1, the created spaces are filled
+        color (c): [optional] color (between 1 and 14) that will be applied to the newly created blocks. If not filled, the potential new blocks will take the color of the first colored one above them (or the default color if no blocks above them).
         color_filter (cf): [optional] Only the blocks having this color (between 1 and 14) will be affected by this command
         new_file (nf): [optional] Instead of updating the original file, a new one is created. Can be anything"""
         parsed_args = parse(arg)
@@ -157,6 +157,10 @@ Type help or ? to list all commands.\n"""
         If no target file, the last file modified by Townshell is used"""
         parsed_args = parse(arg)
         restore(parsed_args)
+
+    def do_shortcuts(self, arg):
+        """Print the current keyboard shortcuts"""
+        print_shortcuts()
 
     def do_start_shortcuts(self, arg):
         """Activate the shortcuts on keyboard to play Townscaper more efficiently"""
@@ -210,7 +214,7 @@ Type help or ? to list all commands.\n"""
 
     def do_playback(self, arg):
         "Playback commands from a file:  PLAYBACK rose.cmd"
-        self.close()
+
         with open(arg) as f:
             self.cmdqueue.extend(f.read().splitlines())
 
