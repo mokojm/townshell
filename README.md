@@ -16,14 +16,13 @@ The following features need you to write command in the shell (ex: level -height
 - Control the versions of your files to keep trace of changes made, get back to your original files whenever you want thanks to the following commands (undo, redo, restore, backup)
 
 # Installation
-If you do not have python installed and you want to use TownShell right away I'd recommend downloading "TownShell.zip" here :
-All you have to do is uncompress the zip file and click "TownShell.exe"
 
-If you already have python installed on your computer, the following library are necessary : keyboard, mouse, pyreadline. You can install them using 'pip' :
+If you do not have Python installed on your computer, you can download it and install it from here : https://www.python.org
+Once Python is installed on your computer, the following library are necessary : keyboard, mouse, pyreadline. You can install them using 'pip' using windows command line (cmd.exe) :
 
 ```pip install keyboard mouse pyreadline```
 
-Then you can download the master branch then click "townshell.bat" to start using it.
+Then you can download the master branch then click "townshell.bat" to start using TownShell.
 
 # Usage
 ## Keyboard shortcuts
@@ -61,7 +60,7 @@ At any time, you can see the active shortcuts using 'shortcuts' command in TownS
 2) Modify the lines related to the keyboard shortcuts to personify your TownShell. Note that 'pause' is the interval between to automatic clicks in seconds.
 3) Save the file, then either restart TownShell or use command 'stop_shortcuts' then 'start_shortcuts'.
 
-Warning ! Beware that Townscaper use already a few keyboard shortcuts, so it's recommended not to use these ones. See: https://www.yekbot.com/townscaper-controls-useful-shortcuts-for-fast-building/
+**Warning** ! Beware that Townscaper use already a few keyboard shortcuts, so it's recommended not to use these ones. See: https://www.yekbot.com/townscaper-controls-useful-shortcuts-for-fast-building/
 
 ## General information
 
@@ -70,7 +69,7 @@ The main purpose of TownShell is to manipulate Townscaper saved files to achieve
 ### Theory
 
 In Townscaper saved files, each position on the grid of Townscaper is called a 'corner'. On each 'corner' you can have one or more blocks. A block is called a 'voxel'. Therefore, every Townscaper building is an assembly of corners of voxels.
-If you wish to read more about how Townscaper saved files are made, you can read the following website : 
+If you wish to read more about how Townscaper saved files are made, you can go to the following website : https://medium.com/@chrisluv/getting-hacky-with-townscaper-5a31cf7f4c6a
 
 ### Limitations
 
@@ -86,6 +85,7 @@ It cannot create corners from an empty map. Indeed, I have not figure out the al
 
 ## Getting started with command line TownShell
 ### Startup screen
+
 ![TownShell_get_started](/Pictures/TownShell_start_screen.png)
 
 When starting TownShell the following are displayed :
@@ -223,11 +223,12 @@ Keyboard shortcuts are stored inside.
 
 ## High Priority
 These improvements will for sure be implemented since it betters the experience with TownShell
+- Build a TownShell.exe to simplify installation of TownShell for beginners
 - Add an 'Escape' hot-keys to be able custom clicks in emergency
 - Make 'playback' works or add a 'load' command to play combinations
 - Colored shell, to identify more easily information displayed
 - Completion improvement, using 'tab', it would become much easier to build a command without knowing the syntax by heart
-- Loadpath : I could use tkinter to let the user search for the directory a more common way
+- Loadpath : I could use tkinter to let the user search for the directory easily
 
 ## Questionable Priority
 Here are some add-ons that my mind would love to see but I'm not sure if anybody aside from me would enjoy it, let me know !
