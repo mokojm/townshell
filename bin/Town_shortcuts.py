@@ -103,7 +103,7 @@ def shortcut(stopnow, shortcuts):
 
         # Fast redo
         elif is_clipped(redo):
-            send("ctrl+y")
+            send("ctrl+x")
 
         # Fast chosen amount add
         elif is_clipped(custom_lclick):
