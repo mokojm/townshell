@@ -91,12 +91,9 @@ It cannot create corners from an empty map. Indeed, I have not figure out the al
 ![TownShell_get_started](/Pictures/TownShell_start_screen.png)
 
 When starting TownShell the following are displayed :
-1) Right after the title, this line means that TownShell was able to find the place where your Townscaper saved filed are gathered by the game. If not follow these steps :
-
-2) The list of the five most recent Townscaper saved files is displayed. The information delivered can be useful to identify you want modify
-
-3) Keyboard shortcuts are displayed
-
+1) Keyboard shortcuts are displayed
+2) This line means that TownShell was able to find the place where your Townscaper saved filed are gathered by the game. If not the steps on screen.
+3) The list of the five most recent Townscaper saved files is displayed. The information delivered can be useful to identify you want modify
 4) Main commands are displayed.
 
 All your Townscaper saved files are backup-ed in 'backup' directory on startup. You'll never what you've been working on so hard !
