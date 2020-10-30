@@ -221,6 +221,11 @@ Keyboard shortcuts are stored inside.
 
 'user_approval' setting controls TownShell behavior when a command like 'level', 'paint', or 'undo' is used without any file name in the command (Example : level -h:8). TownShell will use the last modified file in Townscaper saved file directory, however if this last modified file changed between the last command and the current one, TownShell will ask approval of the user before performing anything. This can happen when you're alternatively using Townscaper and TownShell.
 
+### Logging
+In 'townshell.cfg', 'loglevel' setting determine the level of log that will be saved in 'town.log'. By default it's "INFO". It can be useful to set it to "DEBUG" when a bug is encountered and needs to be shared.
+
+'town.log' contains only the log information related to the running TownShell. If you're looking for older log information, it's in 'town_old.log'
+
 # Future releases
 
 ## High Priority
