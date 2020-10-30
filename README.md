@@ -17,6 +17,12 @@ The following features need you to write command in the shell (ex: level -height
 
 # Installation
 
+The easiest way to get started is by following the link here: https://fromsmash.com/TownShell-quick-start
+Download "TownShell.zip"
+Uncompress it
+Click 'townshell.bat'
+Enjoy !
+
 If you do not have Python installed on your computer, you can download it and install it from here : https://www.python.org
 
 Once Python is installed on your computer, the following library are necessary : keyboard, mouse, pyreadline. You can install them using 'pip' using windows command line (cmd.exe) :
