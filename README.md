@@ -247,3 +247,7 @@ Here are some add-ons that my mind would love to see but I'm not sure if anybody
 - 'randtown' : a very powerful command line allowing you create random town with a lot of options
 - macOS : I don't have a clue what it would imply to have TownShell working on macOS.
 - Provide a collection of grid with interesting features
+
+# Contributing
+I'm not very experienced at programming or using github, so any help on making this project easier to understand will be appreciated.
+Do not hesitate to report bugs. Pull requests are welcomed.
