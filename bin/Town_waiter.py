@@ -259,8 +259,8 @@ def update_cfg(key, value):
 # - if cmd modify the file (level, paint, ...) a check on last modified file is done
 def check_stuff(line):
 
-    # Load_path stuff
-    if line.startswith("loadpath"):
+    # Commands that will always work
+    if any([line.startswith(it) for it in ("loadpath", 'color', 'shortcuts', 'EOF', 'exit', '?', 'help')]):
         return True
 
     # Scapedir stuff
@@ -744,6 +744,12 @@ def init_townshell():
     # Start of new logging
     root.info("TownShell started")
 
+    # Start keyboard shortcuts
+    start_shortcuts()
+
+    # Print keyboard shortcuts
+    print_shortcuts()
+
     # Checks townshell.cfg to find the directory where Townscaper saved files are
     scapedir = read_cfg("scapedir")
 
@@ -769,11 +775,14 @@ def init_townshell():
             Path : """
             )
 
+            if scapedir.startswith('"'):
+                scapedir = scapedir[1:-1]
+
             # Case where the provided path is not correct
             if exists(scapedir) is False:
                 stream.error(
                     """%s does not exist.
-                Only keyboard features will be available. Please use command 'loadpath' to provide Townscaper saved files directory"""
+                Only keyboard features will be available. Please use command 'loadpath' to provide Townscaper saved files directory""", scapedir
                 )
                 return False
 
@@ -796,12 +805,6 @@ def init_townshell():
     if exists(BACKUPTOWN) is False:
         mkdir(BACKUPTOWN)
     backup()
-
-    # Start keyboard shortcuts
-    start_shortcuts()
-
-    # Print keyboard shortcuts
-    print_shortcuts()
 
     # Look for a job to be read and executed
     job_path = read_cfg("job")
