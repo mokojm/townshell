@@ -91,6 +91,15 @@ def print_colors():
     for digit, color in ALLCOLORS.items():
         print("{} ==> {}".format(digit, color))
 
+# Fetch the log level from 'townshell.cfg'
+def get_loglevel():
+
+    loglevel = read_cfg('loglevel')
+    if loglevel not in ("INFO", "WARNING", "DEBUG", "ERROR"):
+        print("Invalid log level found in 'townshell.cfg'. INFO will be used")
+        return "INFO"
+    else:
+        return loglevel
 
 # Customized copy2 to handle logging constraints
 # rename: If True the copy will be renamed in destination if any file with the same name is found

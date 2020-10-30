@@ -22,7 +22,7 @@ formatter = logging.Formatter(
 )
 handler.setFormatter(formatter)
 root = logging.getLogger("Town")
-root.setLevel(environ.get("LOGLEVEL", "INFO"))
+root.setLevel(environ.get("LOGLEVEL", get_loglevel()))
 root.addHandler(handler)
 
 # Stream logger
