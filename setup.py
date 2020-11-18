@@ -1,23 +1,43 @@
-import setuptools
+import sys
 
-with open("README.md", "r") as fh:
-    long_description = fh.read()
+from cx_Freeze import Executable, setup
 
-setuptools.setup(
-    name="townshell", # Replace with your own username
-    version="0.1.0",
-    author="mokojm",
-    author_email="mokoj.triforce@gmail.com",
-    description="A shell script for enhancing Townscaper experience",
-    long_description=long_description,
-    long_description_content_type="text/markdown",
-    url="https://github.com/mokojm/townshell",
-    packages=setuptools.find_packages(),
-    classifiers=[
-        "Development Status :: 4 - Beta"
-        "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: Microsoft :: Windows",
-    ],
-    python_requires='>=3.8',
+sys.path.append('bin')
+
+includefiles = ['README.md', 'LICENSE', r'townshell.cfg']
+includes = ['readline', 'pyreadline']
+excludes = ['tkinter']
+packages = ['readline', 'pyreadline']
+zip_exclude_packages = []
+icon = "Pictures\\TownShell.ico"
+targetName = "TownShell.exe"
+target_name_msi = "TownShell_installer.msi"
+
+shortcut_table = [
+    ("DesktopShortcut",        # Shortcut
+     "DesktopFolder",          # Directory_
+     "TownShell",           # Name
+     "TARGETDIR",              # Component_
+     "[TARGETDIR]TownShell.exe",# Target
+     None,                     # Arguments
+     None,                     # Description
+     None,                     # Hotkey
+     None,                     # Icon
+     None,                     # IconIndex
+     None,                     # ShowCmd
+     'TARGETDIR'               # WkDir
+     ),
+    ]
+
+msi_data = {"Shortcut": shortcut_table}
+
+setup(
+    name = 'TownShell',
+    version = '0.2',
+    description = 'For Townscaper, a command line shell providing additional keyboard shortcuts and tools to manipulate .scape files',
+    author = 'MokoJ',
+    author_email = 'mokoj.triforce@gmail.com',
+    options = {'build_exe': {'includes':includes,'excludes':excludes,'packages':packages,'include_files':includefiles, "zip_include_packages":'*', "zip_exclude_packages":zip_exclude_packages, 'silent':True},
+    'bdist_msi': {'data': msi_data, "target_name": target_name_msi}}, 
+    executables = [Executable(r'bin\Town_table.py', targetName = targetName, icon=icon)]
 )

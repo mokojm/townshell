@@ -4,7 +4,7 @@ from platform import system
 from time import sleep, time
 
 from keyboard import is_pressed as is_clipped
-from keyboard import on_release, send, unhook_all
+from keyboard import on_release, on_release_key, send, unhook_all
 from mouse import click, is_pressed
 
 # Logging
@@ -18,6 +18,15 @@ def getForegroundWindowTitle():
     windll.user32.GetWindowTextW(hWnd, buf, length + 1)
 
     return buf.value
+
+# Set TownShell ForeGround when Townscaper is active
+def setForeground(*args):
+    global myPid
+
+    if getForegroundWindowTitle() == "Townscaper":
+        windll.user32.SetForegroundWindow(myPid)
+        sleep(0.1)
+        windll.user32.SetForegroundWindow(myPid) # One is not enough on my PC
 
 
 # Detect whether another numpad click happenned a determined time before
@@ -40,7 +49,7 @@ def numpad_click(key):
 # Main function activating the keyboard shortcuts to perform fast click on Townscaper
 # stopnow: Event determining if the main loop should be running or not
 # shortcuts: dictionary of the keyboard shortcuts to be used
-def shortcut(stopnow, shortcuts):
+def shortcut(stopnow, shortcuts, mypid):
 
     # lclick: Keyboard shortcut for fast left click
     # rclick: Keyboard shortcut for fast right click
@@ -65,6 +74,9 @@ def shortcut(stopnow, shortcuts):
     amount = 0
     global previous_time
     previous_time = 0.0
+    global myPid; myPid = mypid
+
+    on_release_key("²", setForeground)
     on_release(numpad_click)
 
     # Checks what's the platform
@@ -85,7 +97,7 @@ def shortcut(stopnow, shortcuts):
         # On other system it does not check
         if os_is_windows:
             # root.debug("Current screen : %s", getForegroundWindowTitle())
-            if "Townscaper" not in getForegroundWindowTitle():
+            if "Townscaper" != getForegroundWindowTitle():
                 sleep(0.05)
                 continue
 

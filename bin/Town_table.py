@@ -1,7 +1,8 @@
 # ----- Structure of TownShell -----
 # Town_table initialize logging and contains the commands availables for users
-# Town_waiter is the core for handling commands passed by user, manage files and interact with the module Town_cooker and Town_shortcuts
+# Town_waiter is the core for handling commands passed by user, manage files and interact with the module Town_cooker, Town_clipper and Town_shortcuts
 # Town_cooker contains all functions that actually modify Townscaper saved files
+# Town_clipper contains all functions that transform Townscaper clip to corners/voxels directories
 # Town_shortcuts handles all functions necessary for keyboard shortcuts
 # The configuration like the path where Townscaper files are saved are in townshell.cfg
 
@@ -10,6 +11,7 @@ import sys
 from cmd import Cmd
 from os import environ, mkdir
 from os.path import exists
+from time import sleep
 
 from Town_waiter import *
 
@@ -37,12 +39,11 @@ stream.addHandler(streamhandler)
 class TownShell(Cmd):
 
     main_command = """Main commands :
-- listfiles <option> ==> List the Townscaper saved files available
-- level <file> -height:<n> ==> Modify the height of your structure according to <n>
-- paint <file> -color:<n> ==> Modify the color of your structure according to <n>
+- level -height:<n> ==> Modify the height of your structure according to <n>
+- paint -color:<n> ==> Modify the color of your structure according to <n>
 - colors ==> Print colors and their corresponding digits
-- undo <file> ==> Undo the last change for the targeted file
-- redo <file> ==> Redo the last change for the targeted file
+- undo ==> Undo the last change
+- redo ==> Redo the last change
 See help <cmd> to get more information about a specific command
 Type help or ? to list all commands.\n"""
 
@@ -65,20 +66,12 @@ Type help or ? to list all commands.\n"""
     def postloop(self):
         """End of the loop, keyboard shortcuts are stopped"""
         stop_shortcuts()
+        sleep(1)
 
     def precmd(self, line):
         """Log the command passed and checks that scapedir is defined"""
         root.info("cmd : %s", line)
-
-        # A few checks are made
-        # - if cmd is load_path no check is done
-        # - if the path to saved files is not well defined in townshell.cfg
-        # - if cmd modify the file (level, paint, ...) a check on last modified file is done
-        if check_stuff(line):
-            return line
-        else:
-            # An empty line is returned if the check is not successful
-            return ""
+        return line
 
     def emptyline(self):
         """In Case of empty line nothing is done"""
@@ -120,43 +113,25 @@ Type help or ? to list all commands.\n"""
         print_colors()
 
     def do_level(self, arg):
-        """level <file> -height:<n> -max_height:<n> - min_height:<n> -plain:<0/1> -color:<n> -color_filter:<n> -new_file:<file> ==> Modify the height of your structure according to <n>
-        <file> : [optional] Name of the file to be modified. Can be a path. Can be a chain of characters, the first file corresponding is used
+        """level -height:<n> -max_height:<n> - min_height:<n> -plain:<0/1> -color:<n> -color_filter:<n> <clip> ==> Modify the height of your structure according to <n>
         height (h): [mandatory] The height that will be added to the selected structure. Can be negative, the height of the structure will be decreased
         max_height (maxh): [optional] The maximum height for all building in the structure.
         min_height (minh): [optional] The minimum height for all building in the structure.
         plain (p): [optional] If 0 or not filled, the space below the elevated building stays empty. If 1, the created spaces are filled
         color (c): [optional] color (between 1 and 14) that will be applied to the newly created blocks. If not filled, the potential new blocks will take the color of the first colored one above them (or the default color if no blocks above them).
         color_filter (cf): [optional] Only the blocks having this color (between 1 and 14) will be affected by this command
-        new_file (nf): [optional] Instead of updating the original file, a new one is created. Can be anything"""
+        <clip> : [optional] Clip from Townscaper to be modified"""
         parsed_args = parse(arg)
         level_town(parsed_args)
 
     def do_paint(self, arg):
-        """paint <file> -color:<multi> -color_filter:<n> -height:<multi> -new_file:<file> ==> Modify the color of your structure according to <n>
-        <file> : [optional] Name of the file to be modified. Can be a path. Can be a chain of characters, the first file corresponding is used
+        """paint -color:<multi> -color_filter:<n> -height:<multi> <clip> ==> Modify the color of your structure according to <n>
         color (c): [mandatory] The color (between 1 and 14) that will be applied to the selected blocks. Can be 'r' for random color. Can be (n,m,p) for random choice between n,m and p
         color_filter (cf): [optional] Only the blocks with that color will be modified
         height (h): [optional] Can be a positive integer. Only the blocks at that height will be affected. Can be (n,m,p) only the blocks at these height will be affected. Can be ((n,m),(p,q)). Only the blocks between height n and m, and between p and q will be affected
-        new_file (nf): [optional] Instead of updating the original file, a new one is created. Can be anything"""
+        <clip> : [optional] Clip from Townscaper to be modified"""
         parsed_args = parse(arg)
         paint_town(parsed_args)
-
-    def do_backup(self, arg):
-        """backup <file> ==> Create a copy of all Townscaper saved files in directory 'backup'. Erase the previous ones
-        <file> : [optional] Name of the file to be modified. Can be a path. Can be a chain of characters
-        You can use 'backup -all' or 'backup -a' to apply backup operation to all saved files from Townscaper
-        If no target file, the last file modified by Townshell is used"""
-        parsed_args = parse(arg)
-        backup(pprint=True, args=parsed_args)
-
-    def do_restore(self, arg):
-        """restore <file> ==> Restore a file or all Townscaper saved files to their last backup state
-        <file> : [optional] Name of the file to be modified. Can be a path. Can be a chain of characters, the first file corresponding is used
-        You can use 'restore -all' or 'restore -a' to apply restore operation to all saved files from Townscaper
-        If no target file, the last file modified by Townshell is used"""
-        parsed_args = parse(arg)
-        restore(parsed_args)
 
     def do_shortcuts(self, arg):
         """Print the current keyboard shortcuts"""
@@ -171,25 +146,18 @@ Type help or ? to list all commands.\n"""
         stop_shortcuts()
 
     def do_undo(self, arg):
-        """Undo the last change for the targeted file
-        If no target file, the last modified file is used"""
-        parsed_args = parse(arg)
-        undo(parsed_args)
+        """Copy to clipboard to the previous clip"""
+        undoClip()
 
     def do_redo(self, arg):
-        """Redo the last change for the targeted file
-        If no target file, the last modified file is used"""
-        parsed_args = parse(arg)
-        redo(parsed_args)
+        """Put back to clipboard the clip before 'undo'"""
+        redoClip()
 
     # def do_copy(self, arg):
     # """Copy all voxels or a group of voxels to a chosen height"""
 
     # def do_mix(self, arg):
     #     """Mix the voxels of several files"""
-
-    # def do_select(self, arg):
-    #     """Save a group of voxels according to height or color and attribute a number"""
 
     # def do_randtown(self, arg):
     #     """Create a random town according to a set of criterias"""
@@ -296,3 +264,4 @@ if __name__ == "__main__":
         root.exception("TownShell ended with an error")
         stream.fatal("TownShell Fatal Error system (T_T)")
         townshell.postloop()
+        exit(-1)
