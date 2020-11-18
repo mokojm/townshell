@@ -1,3 +1,4 @@
 echo off
 python bin\Town_table.py
-pause
+if errorlevel 1 pause
+if not errorlevel 0 pause

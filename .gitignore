@@ -1,0 +1,11 @@
+
+*.pyc
+*.scape
+log/town.log
+log/town_old.log
+townshell.cfg
+dist
+temp
+build
+log
+backup

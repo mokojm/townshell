@@ -1,16 +1,19 @@
 import json
 import xml.etree.ElementTree as ET
 from ast import literal_eval as make_tuple
+from ctypes import windll
 from datetime import datetime
-from getpass import getuser  # Used in find_scapedir
+from getpass import getuser
 from glob import glob
 from logging import getLogger
-from os import mkdir, remove, scandir  # Used in list_scapefiles
-from os.path import basename  # Used in find_scapedir and list_scapefiles
-from os.path import dirname, exists, getmtime, isdir, join, splitext
+from os import mkdir, remove, scandir
+from os.path import basename, dirname, exists, getmtime, isdir, join, splitext
 from shutil import copy2, get_terminal_size, move
 from threading import Event, Thread
+from time import sleep
 
+import pyperclip
+from Town_clipper import *
 from Town_cooker import *
 from Town_shortcuts import shortcut
 
@@ -66,6 +69,10 @@ active_shortcuts = False
 global version
 version = {}
 
+# Dictionary of stored clips
+global clipHistory
+clipHistory = {"previous": [], "current": "", "future": []}
+
 # Last modified Townscaper saved file path
 global last_modified
 last_modified = ""
@@ -94,9 +101,16 @@ def print_colors():
 # Fetch the log level from 'townshell.cfg'
 def get_loglevel():
 
+    #Checks that townshell.cfg exists
+    if exists("townshell.cfg") is False:
+        myTownshell = copyc(r"bin\tmp_townshell.cfg", "townshell.cfg")
+        if myTownshell is None: 
+            return "INFO"
+
     loglevel = read_cfg('loglevel')
     if loglevel not in ("INFO", "WARNING", "DEBUG", "ERROR"):
         print("Invalid log level found in 'townshell.cfg'. INFO will be used")
+
         return "INFO"
     else:
         return loglevel
@@ -257,6 +271,7 @@ def update_cfg(key, value):
 # - if cmd is load_path no check is done
 # - if the path to saved files is not well defined in townshell.cfg
 # - if cmd modify the file (level, paint, ...) a check on last modified file is done
+# WARNING ! TO BE DELETED
 def check_stuff(line):
 
     # Commands that will always work
@@ -719,17 +734,15 @@ def restore(args):
 def init_townshell():
 
     global scapedir
+    global mypid
 
     # Print Title
     print(TITLE)
 
-    #Checks that the directories necessary for TownShell to work are built
-    if exists(dirname(BACKUPTOWN)) is False:
-        mkdir(dirname(BACKUPTOWN))
+    # Fetch the pid of TownShell
+    mypid = windll.user32.GetForegroundWindow()
 
-    if exists(TEMP) is False:
-        mkdir(TEMP)
-
+    #Checks for logs
     if exists("log") is False:
         mkdir("log")
 
@@ -743,6 +756,10 @@ def init_townshell():
 
     # Start of new logging
     root.info("TownShell started")
+
+    # Start clipboard watch
+    clipboard_thread = ClipboardThread()
+    clipboard_thread.start()
 
     # Start keyboard shortcuts
     start_shortcuts()
@@ -782,29 +799,13 @@ def init_townshell():
             if exists(scapedir) is False:
                 stream.error(
                     """%s does not exist.
-                Only keyboard features will be available. Please use command 'loadpath' to provide Townscaper saved files directory""", scapedir
+                'listfiles' will not work. Please use command 'loadpath' to provide Townscaper saved files directory""", scapedir
                 )
                 return False
 
         # Case the path is correct
         update_cfg("scapedir", scapedir)
         stream.info("Townscaper saved files are in %s", scapedir)
-
-    # Printing of Townscaper saved files
-    print_scapefiles(max_amount=5)
-
-    # Initialize last_modified
-    candidates = list_scapefiles()
-    if candidates is None:
-        pass
-    else:
-        last_modified = max(candidates, key=getmtime)
-        set_last_modified(last_modified)
-
-    # Update of backup files
-    if exists(BACKUPTOWN) is False:
-        mkdir(BACKUPTOWN)
-    backup()
 
     # Look for a job to be read and executed
     job_path = read_cfg("job")
@@ -835,7 +836,6 @@ def level_town(args):
     plain = False
     color = None
     color_filter = None
-    new_file = None
     for key, arg in iter_args:
 
         # File to modify (char)
@@ -883,115 +883,40 @@ def level_town(args):
             if arg.isnumeric():
                 color_filter = int(arg)
 
-        # New_file : to choose whether the previous file is erased or a new_file is made
-        elif key in ("new_file", "nf"):
-            # Checking the syntax of the new_file
-            if exists(arg):
-                new_file = arg
-
-            # To be handled after
-            elif arg == "":
-                new_file = "to_be_created"
-
-            # The directory of the saved files is fetched to check that the potential file does not exist yet
-            else:
-
-                # Case where the name is valid
-                if arg.startswith("Town") and arg.endswith(".scape"):
-                    name = arg
-
-                # Case where the name is not valid, it's completed
-                else:
-                    name = "Town" + arg + ".scape"
-
-                # Checking that the file does not exist in scapedir. If it exists it will be replaced with a new one
-                if exists(join(scapedir, name)):
-                    stream.warning(
-                        "The name %s for the new file exists already, a new one will be used",
-                        name,
-                    )
-                    root.warning(
-                        "The name %s for the new file exists already, a new one will be used",
-                        name,
-                    )
-                    new_file = "to_be_created"
-                else:
-                    new_file = join(scapedir, name)
-
-        # New_file bis
-        elif key.startswith("option") and arg in ("new_file", "nf"):
-            new_file = "to_be_created"
-
-    # Checking that 'char' as been provided last_modified is used otherwise
-    if char is None:
-        char = get_last_modified()
-
     # Checking that height has been filled
     if height is None:
         stream.error("No valid height was found")
         root.warning("No valid height was found")
         return
 
-    # Dealing with new_file to be created
-    if new_file == "to_be_created":
 
-        # The name of the file is created using the current timestamp
-        suffix = datetime.now().strftime("%Y%m%d%H%M%S")
-        name = "Town" + suffix + ".scape"
-        new_file = join(scapedir, name)
-
-        root.info("The file will be saved to %s", new_file)
-        stream.info("The file will be saved to %s", new_file)
-
-    # Fetching the path of the file to be modified
-    file_path = list_scapefiles(char)
-
-    if file_path is None:
+    # PREVIOUSLY: Checking that 'char' has been provided last_modified is used otherwise
+    # 2020/11/15 : lastClip is used instead of last_modified if 'char' was not provided 
+    if char is None and lastClip is None:
+        stream.warning("No valid clip from Townscaper.\nClick 'Save to Clipboard' on Townscaper then try again")
+        root.info("No valid clip from Townscaper")
         return
-    # Several files were found
-    elif len(file_path) > 1:
-        root.warning(
-            "Several files were found : {}".format(
-                [basename(file) for file in file_path]
-            )
-        )
-        stream.warning(
-            """Several files were found : {}
-            Please try again with more characters""".format(
-                [basename(file) for file in file_path]
-            )
-        )
+    elif char is None:
+        char = lastClip
+
+    # Checks if 'char' is a clip
+    elif isClip(char) is False:
         return
-    # One file
-    else:
-        file_path = file_path[0]
 
-    # Dictionary parsing the file
-    corvox, rawfile = load(file_path)
-
-    # Saving the raw data in version for undo/redo
-    store_version(file_path, rawfile)
+    #Corvox from clip    
+    corvox = clipToCorvox(char)
+    if corvox is None: return
 
     # Leveling of appropriate data
     corvox = level(
         corvox, height, coord, max_height, min_height, plain, color, color_filter
     )
 
-    # Saving the new file
-    new_save = save(corvox, file_path, new_file)
+    # Copy to clipboard
+    new_clip = corvoxToClip(corvox)
 
-    # Versioning
-    if new_file is None:
-        store_version(file_path, new_save)
-
-    # Last_modified updated
-    if new_file is None:
-        set_last_modified(file_path)
-    else:
-        set_last_modified(new_file)
-
-    # Print the new created file
-    print_scapefiles(max_amount=1)
+    # Store the new clip
+    storeClip(new_clip)
 
 
 # Do all operations to level the town as required
@@ -1015,7 +940,6 @@ def paint_town(args):
     column = None
     coord = ()
     details = None
-    new_file = None
 
     for key, arg in iter_args:
 
@@ -1065,112 +989,44 @@ def paint_town(args):
         # Column, coord and Details are not implemented yet
         ###
 
-        # New_file : to choose whether the previous file is erased or a new_file is made
-        elif key in ("new_file", "nf"):
-            # Checking the syntax of the new_file
-            if exists(arg):
-                new_file = arg
 
-            # To be handled after
-            elif arg == "":
-                new_file = "to_be_created"
+    if char is None and lastClip == "":
+        stream.warning("No valid clip from Townscaper.\nClick 'Save to Clipboard' on Townscaper then try again")
+        root.info("No valid clip from Townscaper")
+        return
+    elif char is None:
+        char = lastClip
 
-            # The directory of the saved files is fetched to check that the potential file does not exist yet
-            else:
-
-                # Case where the name is valid
-                if arg.startswith("Town") and arg.endswith(".scape"):
-                    name = arg
-
-                # Case where the name is not valid, it's completed
-                else:
-                    name = "Town" + arg + ".scape"
-
-                # Checking that the file does not exist in scapedir. If it exists it will be replaced with a new one
-                if exists(join(scapedir, name)):
-                    stream.warning(
-                        "The name %s for the new file exists already, a new one will be used",
-                        name,
-                    )
-                    root.warning(
-                        "The name %s for the new file exists already, a new one will be used",
-                        name,
-                    )
-                    new_file = "to_be_created"
-                else:
-                    new_file = join(scapedir, name)
-
-    # Checking that 'char' as been provided last_modified is used otherwise
-    if char is None:
-        char = get_last_modified()
-
-    # Color is mandatory
-    if color is None:
+    # Checks if 'char' is a clip
+    elif isClip(char) is False:
         return
 
-    # Dealing with new_file to be created
-    if new_file == "to_be_created":
-
-        # The name of the file is created using the current timestamp
-        suffix = datetime.now().strftime("%Y%m%d%H%M%S")
-        name = "Town" + suffix + ".scape"
-        new_file = join(scapedir, name)
-
-        root.info("The file will be saved to %s", new_file)
-        stream.info("The file will be saved to %s", new_file)
-
-    # Fetching the path of the file to be modified
-    file_path = list_scapefiles(char)
-
-    if file_path is None:
-        return
-    # Several files were found
-    elif len(file_path) > 1:
-        root.warning(
-            "Several files were found : {}".format(
-                [basename(file) for file in file_path]
-            )
-        )
-        stream.warning(
-            """Several files were found : {}
-            Please try again with more characters""".format(
-                [basename(file) for file in file_path]
-            )
-        )
-        return
-    # One file
-    else:
-        file_path = file_path[0]
-
-    # Dictionary parsing the file
-    corvox, rawfile = load(file_path)
-
-    # Saving the raw data in version for undo/redo
-    store_version(file_path, rawfile)
+    #Corvox from clip    
+    corvox = clipToCorvox(char)
+    if corvox is None: return
 
     # Leveling of appropriate data
     corvox = paint(corvox, color, color_filter, height, column, coord, details)
 
-    # Saving the new file
-    new_save = save(corvox, file_path, new_file)
+    # Copy to clipboard
+    new_clip = corvoxToClip(corvox)
 
-    # Versioning
-    if new_file is None:
-        store_version(file_path, new_save)
-
-    # Last modified updated
-    if new_file is None:
-        set_last_modified(file_path)
-    else:
-        set_last_modified(new_file)
-
-    # Print the new created file
-    print_scapefiles(max_amount=1)
+    # Store the new clip
+    storeClip(new_clip)
 
 
-# Handle the storage of the versions, update a key or create a new one
+# Store the clip
+def storeClip(clip):
+    global clipHistory
+    
+    clipHistory["previous"].append(clipHistory["current"])
+    clipHistory["current"] = clip
+    clipHistory["future"] = []
+
+# Handle the storage of the clips
 # path: path of the file the content will be saved
 # raw: file content
+# WARNING : TO BE DELETED
 def store_version(path, raw):
 
     global version
@@ -1186,7 +1042,27 @@ def store_version(path, raw):
         version[path] = {"previous": [], "current": raw, "future": []}
 
 
+# Fetch the lastclip
+def undoClip():
+
+    global clipHistory
+
+    if clipHistory["previous"] != []:
+
+        clipHistory["future"].append(clipHistory["current"])
+        clipHistory["current"] = clipHistory["previous"].pop()
+
+        #To clipboard
+        pyperclip.copy(clipHistory["current"])
+
+    # No corresponding files
+    else:
+        stream.warning(f"No older clip")
+        root.info(f"No older clip")
+
+
 # Fetch the content of the previous version of the spoted file and save it
+# WARNING : TO BE DELETED
 def undo(args):
 
     global versions
@@ -1244,7 +1120,26 @@ def undo(args):
         root.info("No file found in versions for %s", file_path)
 
 
-# Fetch the future version of the file (equivalent to Ctrl+Y)
+# Fetch the last future clip (Yes I don't know how to say it)
+def redoClip():
+
+    global clipHistory
+
+    if clipHistory["future"] != []:
+
+        clipHistory["previous"].append(clipHistory["current"])
+        clipHistory["current"] = clipHistory["future"].pop()
+
+        #To clipboard
+        pyperclip.copy(clipHistory["current"])
+
+    # No corresponding files
+    else:
+        stream.warning(f"No newer clip")
+        root.info(f"No newer clip")
+
+# Fetch the future version of the file (equivalent to Ctrl+X)
+# WARNING : TO BE DELETED
 def redo(args):
 
     global versions
@@ -1315,6 +1210,9 @@ def print_shortcuts():
     if shortcuts is None: return
     shortcuts = iter(shortcuts.items())
 
+    # Shorcut to open TownShell
+    print("Press '²' to open TownShell from Townscaper")
+
     # First shortcuts
     info_printed = False
     for key, value in shortcuts:
@@ -1324,7 +1222,7 @@ def print_shortcuts():
             info_printed = True
 
         if key == 'pause':
-            print("\nIntervals between clicks (s) : {}".format(value))
+            print(f"\nIntervals between clicks (s) : {value}")
 
         else:
             print("'{}' ==> '{}'".format(key, value))
@@ -1341,8 +1239,9 @@ class ShortcutThread(Thread):
         self.daemon = True
 
     def run(self):
+        global mypid
         # Fetch the keyboard shortcuts settings from townshell.cfg
-        shortcut(self.event, read_cfg("shortcuts"))
+        shortcut(self.event, read_cfg("shortcuts"), mypid)
 
 # Start a thread activating the keyboard shortcuts
 def start_shortcuts():
@@ -1384,3 +1283,83 @@ def stop_shortcuts():
     active_shortcuts = False
     stream.info("Keyboard shortcuts have been deactivated")
     root.info("Keyboard shortcuts have been deactivated")
+
+# Return True if the provided string is a clip
+# Only bits and dense are checked assuming that it's enough to check
+def isClip(clip):
+
+    bits = clipToBits(clip)
+    if bits and bitsToDense(bits):
+        return True
+    else:
+        return False
+
+# Thread that checks whether TownShell is the active application and checks the content of the clipboard
+# NOTE : The implementation could change the "Groups" features are implemented (TODO)
+class ClipboardThread(Thread):
+    def __init__(self):  
+        Thread.__init__(self)
+        self.daemon = True
+
+    def run(self):
+
+        global mypid
+        global lastClip
+        lastClip = None
+        prev_clip = ""
+
+        while True:
+            #Fetch the foreground application
+            cur_foreground = windll.user32.GetForegroundWindow()
+
+            if mypid == cur_foreground:
+
+                #The clipboard is checked
+                clip = pyperclip.paste()
+
+                #Check that it's a valid clip from Townscaper
+                if clip and prev_clip != clip and isClip(clip):
+
+                    #The first valid clip is stored (could be improved)
+                    if lastClip is None:
+                        storeClip(clip)
+
+                    lastClip = clip
+
+            #Wait between loops
+            prev_clip = clip
+            sleep(0.5)
+
+
+
+# Transform a dictionary corvox to string and copy it to clipboard
+def corvoxToClip(corvox):
+
+    dense = sparseToDense(corvoxToSparse(corvox))
+    bits = denseToBits(dense) if dense else None
+    clip = bitsToClip(bits) if bits else None
+    
+    if clip:
+        pyperclip.copy(clip)
+        root.info("Corvox copied on clipboard")
+        stream.info("Click 'Load from Clipboard' to get it")
+        return clip
+    else:
+        stream.error("Copy for 'Load from Clipboard' failed. Set DEBUG on 'loglevel' in 'townshell.cfg' and try again for more information")
+        root.error("Copy for 'Load from Clipboard' failed. Set DEBUG on 'loglevel' in 'townshell.cfg' and try again for more information")
+        return
+
+# Transform a clipboard content of Townscaper into a corvox dictionary
+def clipToCorvox(clip):
+
+    bits = clipToBits(clip)
+    dense = bitsToDense(bits) if bits else None
+    sparse = denseToSparse(dense) if dense else None
+    corvox = sparseToCorvox(sparse) if sparse else None
+
+    if corvox:
+        return corvox
+    else:
+        stream.error("Invalid clipboard content. Set DEBUG on 'loglevel' in 'townshell.cfg' and try again for more information")
+        root.error("Invalid clipboard content. Set DEBUG on 'loglevel' in 'townshell.cfg' and try again for more information")
+        return
