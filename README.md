@@ -9,23 +9,29 @@
 ![TownShellgif](/Pictures/TownShell.gif)
 
 Wanna save some clicks on [Townscaper](https://store.steampowered.com/app/1291340/Townscaper/), this small command line shell will help you !
+
 Get additional keyboard shortcuts to relax your fingers while building your town.
+
 Get access to useful tools to accelerate your building process. Change the height of many blocks at a time. Change the color of your whole structure with a few words.
 
 # Quickstart
-Download "TownShell.zip" [here](https://fromsmash.com/townshell-zip)
+Download "TownShell.zip" [here](https://fromsmash.com/townshell-zip),
+
 Uncompress it
+
 Click '**townshell.bat**'
 
-Open "Townscaper"
-Click "New"
-Press "x" few seconds 
+Open "Townscaper",
+Click "New",
+Press "x" few seconds,
+
 Enjoy the fast click !
 
-Click "Save to Clipboard"
-Tap "²" to open "TownShell"
+Click "Save to Clipboard",
+Tap "²" to open "TownShell",
 Write "**level -h:10**"
-Back to "Townscaper" click "Load from Clipboard"
+
+Back to "Townscaper" click "Load from Clipboard", 
 Enjoy the time you've saved !
 
 Explore this file for more features
@@ -47,21 +53,26 @@ Explore this file for more features
 # Installation
 
 The easiest way to get started is by following the link [here](https://fromsmash.com/townshell-zip),
-Choose the file adapted to your system (32/64 bits)
-Download "TownShell.zip"
-Uncompress it
+Download "TownShell.zip",
+Uncompress it,
+
 Click 'townshell.bat'
+
 Enjoy !
 
-If you trust me and want to have a beautiful ".exe" Go [here](https://fromsmash.com/townshell-exe),
-Choose the file adapted to your system (64 bits only for now)
+If want a beautiful ".exe" and you're not afraid of Windows warning messages, Go [here](https://fromsmash.com/townshell-exe),
+(**64 bits only for now**)
 Download it,
-Bypass the security of Windows
-Launch the installer
-Click "TownShell.exe"
+
+Bypass the security of Windows,
+
+Launch the installer, a shortcut should be created on your desktop.
+
+Click "TownShell.exe",
+Bypass your firewall warning,
 Enjoy !
 
-For advanced users see [Advanced installation](#advanced-installation)
+For advanced users familiar with Python, see [Advanced installation](#advanced-installation)
 
 # Usage
 ## Keyboard shortcuts
