@@ -1,5 +1,10 @@
 # TownShell
-![TownShell](/Pictures/Townshell.PNG) ![Townshellico](/Pictures/TownShell.ico)
+
+<p align="center">
+<a href="./Pictures/TownShell.ico">
+<img src="./Pictures/TownShell.ico" alt="TownShell ico">
+</a>
+</p>
 
 ![TownShellgif](/Pictures/TownShell.gif)
 
@@ -8,9 +13,9 @@ Get additional keyboard shortcuts to relax your fingers while building your town
 Get access to useful tools to accelerate your building process. Change the height of many blocks at a time. Change the color of your whole structure with a few words.
 
 # Quickstart
-Download "TownShell.zip" [here](link to be added)
+Download "TownShell.zip" [here](https://fromsmash.com/townshell-zip)
 Uncompress it
-Click 'townshell.bat'
+Click '**townshell.bat**'
 
 Open "Townscaper"
 Click "New"
@@ -19,7 +24,7 @@ Enjoy the fast click !
 
 Click "Save to Clipboard"
 Tap "²" to open "TownShell"
-Write "level -h:10"
+Write "**level -h:10**"
 Back to "Townscaper" click "Load from Clipboard"
 Enjoy the time you've saved !
 
@@ -41,14 +46,14 @@ Explore this file for more features
 
 # Installation
 
-The easiest way to get started is by following the link here,
+The easiest way to get started is by following the link [here](https://fromsmash.com/townshell-zip),
 Choose the file adapted to your system (32/64 bits)
 Download "TownShell.zip"
 Uncompress it
 Click 'townshell.bat'
 Enjoy !
 
-If you trust me and want to have a beautiful ".exe" Go [here](to_be_added),
+If you trust me and want to have a beautiful ".exe" Go [here](https://fromsmash.com/townshell-exe),
 Choose the file adapted to your system (64 bits only for now)
 Download it,
 Bypass the security of Windows
@@ -62,6 +67,7 @@ For advanced users see [Advanced installation](#advanced-installation)
 ## Keyboard shortcuts
 Keyboard shortcuts are active by default once TownShell is started. It works only when Townscaper is the foreground window.
 Default shortcuts are as follows :
+
 'Open TownShell' ==> '²'
 
 'left_click' ==> 'x'

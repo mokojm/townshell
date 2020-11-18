@@ -35,7 +35,7 @@ setup(
     name = 'TownShell',
     version = '0.2',
     description = 'For Townscaper, a command line shell providing additional keyboard shortcuts and tools to manipulate .scape files',
-    author = 'MokoJ',
+    author = 'mokojm',
     author_email = 'mokoj.triforce@gmail.com',
     options = {'build_exe': {'includes':includes,'excludes':excludes,'packages':packages,'include_files':includefiles, "zip_include_packages":'*', "zip_exclude_packages":zip_exclude_packages, 'silent':True},
     'bdist_msi': {'data': msi_data, "target_name": target_name_msi}}, 
