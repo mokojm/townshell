@@ -81,21 +81,26 @@ Default shortcuts are as follows :
 
 'Open TownShell' ==> '²'
 
-'left_click' ==> 'x'
+'left_click' ==> 'space'
 
 'right_click' ==> 'c'
 
-'undo' ==> 'v'
+'undo click' ==> 'v'
 
-'redo' ==> 'b'
+'redo click' ==> 'b'
 
-'custom_left_click' ==> 'maj+x'
+'custom_left_click' ==> 'maj+space'
 
 'custom_right_click' ==> 'maj+c'
 
 'custom_undo' ==> 'maj+v'
 
 'custom_redo' ==> 'maj+b'
+
+'undo last command' ==> 'ctrl+alt+z'
+
+'redo last command' ==> 'ctrl+alt+x'
+
 
 For example, by default, keeping 'x' pressed will result in block creation every 0,05 seconds.
 
@@ -260,6 +265,10 @@ Here are some add-ons that my mind would love to see but I'm not sure if anybody
 - macOS : I don't have a clue what it would imply to have TownShell working on macOS.
 - Provide a collection of grid with interesting features
 - Make 'playback' works or add a 'load' command to play combinations
+
+## Bugs
+- Control on isClip make TownShell crash often
+- The original clip is often missing when using undo
 
 # Contributing
 I'm not very experienced at programming or using github, so any help on making this project easier to understand will be appreciated.

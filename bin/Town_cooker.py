@@ -181,7 +181,7 @@ def level(
     plain=False,
     color=None,
     color_filter=None,
-    default_color=13,
+    default_color=14,
 ):
 
     # Color is None

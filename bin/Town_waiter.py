@@ -13,6 +13,7 @@ from threading import Event, Thread
 from time import sleep
 
 import pyperclip
+from keyboard import add_hotkey
 from Town_clipper import *
 from Town_cooker import *
 from Town_shortcuts import shortcut
@@ -79,18 +80,6 @@ last_modified = ""
 
 # Directory where all Townscaper saved files are
 scapedir = ""
-
-# Return the path of the last modified Townscaper saved file
-def get_last_modified():
-    global last_modified
-    return last_modified
-
-
-# Update the last modified townscaper saved file path
-def set_last_modified(path):
-    global last_modified
-    last_modified = path
-
 
 # Print the colors a pretty way
 def print_colors():
@@ -263,68 +252,6 @@ def update_cfg(key, value):
     # Final return
     root.info("%s successfully updated", TOWNSHELL_PATH)
     root.debug("Written :\n{}".format(cfg))
-    return True
-
-
-# Checks a bunch of things and modify if unappropriate
-# line: command about to be executed
-# - if cmd is load_path no check is done
-# - if the path to saved files is not well defined in townshell.cfg
-# - if cmd modify the file (level, paint, ...) a check on last modified file is done
-# WARNING ! TO BE DELETED
-def check_stuff(line):
-
-    # Commands that will always work
-    if any([line.startswith(it) for it in ("loadpath", 'color', 'shortcuts', 'EOF', 'exit', '?', 'help')]):
-        return True
-
-    # Scapedir stuff
-    global scapedir
-    if exists(scapedir) is False:
-
-        scapedir = read_cfg("scapedir")
-        if exists(scapedir) is False:
-            stream.warning(
-                "Townscaper saved files directory is not defined. See 'help loadpath' to update it"
-            )
-            return False
-
-    # Last_modified stuff
-    # Command that require that check : level, paint, undo, redo, backup, restore
-    if (
-        line.startswith("level -")
-        or line.startswith("paint -")
-        or line in ("undo", "redo", "backup", "restore")
-    ):
-
-        global last_modified
-        new_last_modified = max(list_scapefiles(), key=getmtime)
-        if new_last_modified != last_modified:
-
-            # Check in townshell.cfg to know whether there is a control or not
-            if read_cfg("user_approval") in (True, None):
-                pursue = input(
-                    """The last modified file changed. The new one is : {}
-                    Do you want to continue ? (y/n) :""".format(
-                        basename(new_last_modified)
-                    )
-                )
-                if pursue.lower() not in ("y", "1", "o"):
-                    root.debug("User did not want to continue (pursue : '%s' )", pursue)
-                    return False
-                else:
-                    root.info(
-                        "Last modified change approved. New file : %s",
-                        new_last_modified,
-                    )
-                    last_modified = new_last_modified
-
-            # Bypass controls
-            else:
-                root.debug("User approval bypassed")
-                last_modified = new_last_modified
-
-    # Everything is fine
     return True
 
 
@@ -601,132 +528,6 @@ def print_scapefiles(max_amount=5, args=None):
     return True
 
 
-# Create a backup copy of every saved files from townscaper
-# pprint: If True, the updated files are printed
-# args: cmd dictionary when backup is used from Cmd
-def backup(pprint=False, args=None):
-
-    # Dealing with args
-    if args == {}:
-        char = get_last_modified()
-        if char == "":
-            return
-
-    elif args is None:
-        char = ""
-
-    elif "input1" in args and args["input1"] in ("-a", "-all"):
-        char = ""
-
-    elif "input1" in args:
-        char = args["input1"]
-
-    # Listing of all saved files
-    scapefiles = list_scapefiles(char)
-
-    # Case list_scapefiles failed
-    if scapefiles is None:
-        return
-
-    # Listing of backup files
-    backupfiles = {}
-    with scandir(BACKUPTOWN) as backupdir:
-        for file in backupdir:
-            backupfiles[file.name] = {"path": file.path, "date": getmtime(file.path)}
-
-    # Compare of scapefiles and backupfiles
-    one_failure = False  # At least one operation failed
-    one_change = False  # At least one file was updated or newly backup
-    for file in scapefiles:
-
-        name = basename(file)
-        # Case the file is already in BACKUPTOWN, the update time is checked, if the file is newer, it's updated
-        if name in backupfiles and getmtime(file) > backupfiles[name]["date"]:
-            res = copyc(file, backupfiles[name]["path"], erase=True)
-            if res and pprint:
-                stream.info("Successful update backup of %s", name)
-            if res:
-                root.debug("Successful update backup of %s", name)
-                one_change = True
-            else:
-                one_failure = True
-
-        # Case the file is already in BACKUPTOWN but the mtime is the same or newer, nothing is done
-        elif name in backupfiles:
-            pass
-
-        # Case the file does not exists in BACKUPTOWN
-        else:
-            res = copyc(file, BACKUPTOWN)
-            if res and pprint:
-                stream.info("Successful new backup of %s", name)
-            if res:
-                root.info("Successful new backup of %s", name)
-                one_change = True
-            else:
-                one_failure = True
-
-    # Final print
-    if pprint and one_change is False and one_failure is False:
-        stream.info("No new backup or update")
-        root.info("No new backup or update")
-
-
-# Restore a file or all Townscaper saved files to their last backup state
-# args: Dictionary containing the args. Expected ones are '-all' or chain of characters or a path
-def restore(args):
-
-    # No args mean last_modified is used
-    if args == {}:
-        char = get_last_modified()
-        if char == "":
-            return
-    else:
-        # Checking the provided args : only the first arg is analyzed actually
-        iter_args = iter(args.items())
-        key, char = next(iter_args)
-
-    # Case it's path
-    if exists(char):
-        file_to_restore = char
-
-    # Case it's all
-    elif char in ("-a", "-all"):
-        files = list_scapefiles()
-        for file in files:
-            restore({"input1": file})
-
-    # Other case, it's a chain of characters
-    else:
-
-        # Pick the first file found
-        candidates = list_scapefiles(char)
-        if candidates == []:
-            stream.error("No corresponding file")
-            root.warning("No file found for %s", char)
-            return
-        else:
-            file_to_restore = candidates[0]
-            stream.info("File to be restored : %s", file_to_restore)
-            root.info("File to be restored : %s", file_to_restore)
-
-    # Checking that the file exists in BACKUPTOWN and that the file has been modified
-    backup_file = join(BACKUPTOWN, basename(file_to_restore))
-    if exists(backup_file) and getmtime(file_to_restore) == getmtime(backup_file):
-        stream.warning("No restore since the file are the same")
-        root.warning(
-            "No restore since the last modification date of both files are the same"
-        )
-
-    elif exists(backup_file) and getmtime(file_to_restore) != getmtime(backup_file):
-        copyc(backup_file, file_to_restore, erase=True)
-        stream.info("Successful restore of %s", basename(file_to_restore))
-
-    else:
-        stream.error("No backup found for %s", basename(file_to_restore))
-        root.warning("No backup found for %s", basename(file_to_restore))
-
-
 # Initialize Townshell
 # - Fetch the directory of Townscaper saved files
 # - List all saved files if found
@@ -903,6 +704,8 @@ def level_town(args):
     elif isClip(char) is False:
         return
 
+    storeClip(char)
+
     #Corvox from clip    
     corvox = clipToCorvox(char)
     if corvox is None: return
@@ -1001,6 +804,9 @@ def paint_town(args):
     elif isClip(char) is False:
         return
 
+    #The clip saved for undo/redo
+    storeClip(char)
+
     #Corvox from clip    
     corvox = clipToCorvox(char)
     if corvox is None: return
@@ -1019,31 +825,17 @@ def paint_town(args):
 def storeClip(clip):
     global clipHistory
     
-    clipHistory["previous"].append(clipHistory["current"])
-    clipHistory["current"] = clip
-    clipHistory["future"] = []
-
-# Handle the storage of the clips
-# path: path of the file the content will be saved
-# raw: file content
-# WARNING : TO BE DELETED
-def store_version(path, raw):
-
-    global version
-
-    # Check that path is in versions or not
-    if path in version:
-        version[path]["previous"].append(version[path]["current"])
-        version[path]["current"] = raw
-        version[path]["future"] = []
-
-    # A new key is added to version.
+    #Duplicate from the current clip are bypassed
+    if clip == clipHistory["current"]:
+        return
     else:
-        version[path] = {"previous": [], "current": raw, "future": []}
+        clipHistory["previous"].append(clipHistory["current"])
+        clipHistory["current"] = clip
+        clipHistory["future"] = []
 
 
 # Fetch the lastclip
-def undoClip():
+def undoClip(streamit=True):
 
     global clipHistory
 
@@ -1057,71 +849,13 @@ def undoClip():
 
     # No corresponding files
     else:
-        stream.warning(f"No older clip")
+        if streamit: stream.warning(f"No older clip")
         root.info(f"No older clip")
 
 
-# Fetch the content of the previous version of the spoted file and save it
-# WARNING : TO BE DELETED
-def undo(args):
-
-    global versions
-
-    # No args mean last_modified is used
-    if args == {}:
-        char = get_last_modified()
-        if char == "":
-            return
-    else:
-        # Checking the provided args : only the first arg is analyzed actually
-        iter_args = iter(args.items())
-        key, char = next(iter_args)
-
-    # Fetching the path of the file to be modified
-    file_path = list_scapefiles(char)
-
-    if file_path is None:
-        return
-    # Several files were found
-    elif len(file_path) > 1:
-        root.warning(
-            "Several files were found : {}".format(
-                [basename(file) for file in file_path]
-            )
-        )
-        stream.warning(
-            """Several files were found : {}
-    Please try again with more characters""".format(
-                [basename(file) for file in file_path]
-            )
-        )
-        return
-    # One file
-    else:
-        file_path = file_path[0]
-
-    # Checks that the file exists in versions dictionary
-    if file_path in version and version[file_path]["previous"] != []:
-
-        version[file_path]["future"].append(version[file_path]["current"])
-        version[file_path]["current"] = version[file_path]["previous"].pop()
-
-        # The file is written back to its previous state
-        # (Handling of the stats of the file to be done in the future)
-        with open(file_path, "w") as file:
-            file.write(version[file_path]["current"])
-
-        stream.info("Undo success for %s", basename(file_path))
-        root.info("Undo success for %s", basename(file_path))
-
-    # No corresponding files
-    else:
-        stream.warning("No older version for %s", basename(file_path))
-        root.info("No file found in versions for %s", file_path)
-
 
 # Fetch the last future clip (Yes I don't know how to say it)
-def redoClip():
+def redoClip(streamit=True):
 
     global clipHistory
 
@@ -1135,66 +869,9 @@ def redoClip():
 
     # No corresponding files
     else:
-        stream.warning(f"No newer clip")
+        if streamit: stream.warning(f"No newer clip")
         root.info(f"No newer clip")
 
-# Fetch the future version of the file (equivalent to Ctrl+X)
-# WARNING : TO BE DELETED
-def redo(args):
-
-    global versions
-
-    # No args mean last_modified is used
-    if args == {}:
-        char = get_last_modified()
-        if char == "":
-            return
-    else:
-        # Checking the provided args : only the first arg is analyzed actually
-        iter_args = iter(args.items())
-        key, char = next(iter_args)
-
-    # Fetching the path of the file to be modified
-    file_path = list_scapefiles(char)
-
-    if file_path is None:
-        return
-    # Several files were found
-    elif len(file_path) > 1:
-        root.warning(
-            "Several files were found : {}".format(
-                [basename(file) for file in file_path]
-            )
-        )
-        stream.warning(
-            """Several files were found : {}
-    Please try again with more characters""".format(
-                [basename(file) for file in file_path]
-            )
-        )
-        return
-    # One file
-    else:
-        file_path = file_path[0]
-
-    # Checks that the file exists in versions dictionary
-    if file_path in version and version[file_path]["future"] != []:
-
-        version[file_path]["previous"].append(version[file_path]["current"])
-        version[file_path]["current"] = version[file_path]["future"].pop()
-
-        # The file is written back to its previous state
-        # (Handling of the stats of the file to be done in the future)
-        with open(file_path, "w") as file:
-            file.write(version[file_path]["current"])
-
-        stream.info("Redo success for %s", basename(file_path))
-        root.info("Redo success for %s", basename(file_path))
-
-    # No corresponding files
-    else:
-        stream.warning("No newer version for %s", basename(file_path))
-        root.info("No newer file in version for %s", file_path)
 
 # Print the current keyboard shortcuts
 def print_shortcuts():
@@ -1240,8 +917,14 @@ class ShortcutThread(Thread):
 
     def run(self):
         global mypid
+
+        # Hotkeys
+        myShortcuts = read_cfg("shortcuts")
+        add_hotkey(myShortcuts["undo_command"], undoClip, args=[False], suppress=True)
+        add_hotkey(myShortcuts["redo_command"], redoClip, args=[False], suppress=True)
+
         # Fetch the keyboard shortcuts settings from townshell.cfg
-        shortcut(self.event, read_cfg("shortcuts"), mypid)
+        shortcut(self.event, myShortcuts, mypid)
 
 # Start a thread activating the keyboard shortcuts
 def start_shortcuts():
@@ -1288,10 +971,15 @@ def stop_shortcuts():
 # Only bits and dense are checked assuming that it's enough to check
 def isClip(clip):
 
-    bits = clipToBits(clip)
-    if bits and bitsToDense(bits):
-        return True
-    else:
+    try:
+        bits = clipToBits(clip)
+        if bits and bitsToDense(bits):
+            return True
+        else:
+            return False
+
+    except:
+        root.exception("Error in isclip but let's keep working")
         return False
 
 # Thread that checks whether TownShell is the active application and checks the content of the clipboard
@@ -1319,10 +1007,6 @@ class ClipboardThread(Thread):
 
                 #Check that it's a valid clip from Townscaper
                 if clip and prev_clip != clip and isClip(clip):
-
-                    #The first valid clip is stored (could be improved)
-                    if lastClip is None:
-                        storeClip(clip)
 
                     lastClip = clip
 

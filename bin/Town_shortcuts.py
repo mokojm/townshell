@@ -3,12 +3,15 @@ from logging import getLogger
 from platform import system
 from time import sleep, time
 
+from keyboard import add_hotkey
 from keyboard import is_pressed as is_clipped
 from keyboard import on_release, on_release_key, send, unhook_all
 from mouse import click, is_pressed
 
 # Logging
 root = getLogger("Town.shortcuts")
+
+COLORS = {1:0, 2:1, 3:2, 4:3, 5:4, 6:5, 7:6, 8:7, 9:8, 0:9, 21:10, 22:11, 23:12, 24:13, 25:14}
 
 # Return the active window title (Work only on Windows system)
 def getForegroundWindowTitle():
@@ -24,9 +27,15 @@ def setForeground(*args):
     global myPid
 
     if getForegroundWindowTitle() == "Townscaper":
+        windll.user32.ShowWindow(myPid, 1)
         windll.user32.SetForegroundWindow(myPid)
         sleep(0.1)
         windll.user32.SetForegroundWindow(myPid) # One is not enough on my PC
+
+    elif townscaperPid and windll.user32.GetForegroundWindow() == myPid:
+        windll.user32.SetForegroundWindow(townscaperPid)
+        sleep(0.1)
+        windll.user32.SetForegroundWindow(townscaperPid)
 
 
 # Detect whether another numpad click happenned a determined time before
@@ -75,8 +84,9 @@ def shortcut(stopnow, shortcuts, mypid):
     global previous_time
     previous_time = 0.0
     global myPid; myPid = mypid
+    global townscaperPid; townscaperPid = None
 
-    on_release_key("²", setForeground)
+    on_release_key("²", setForeground, suppress=True)
     on_release(numpad_click)
 
     # Checks what's the platform
@@ -101,8 +111,41 @@ def shortcut(stopnow, shortcuts, mypid):
                 sleep(0.05)
                 continue
 
+            #Save Townscaper pid
+            elif townscaperPid is None:
+                townscaperPid = windll.user32.GetForegroundWindow()
+
+
+        # Fast chosen amount add
+        if is_clipped(custom_lclick):
+            for i in range(amount):
+                if is_clipped('esc'): break
+                click()
+                sleep(pause)
+
+        # Fast chosen amount erase
+        elif is_clipped(custom_rclick):
+            for i in range(amount):
+                if is_clipped('esc'): break
+                click("right")
+                sleep(pause)
+
+        # Fast chosen amount undo
+        elif is_clipped(custom_undo):
+            for i in range(amount):
+                if is_clipped('esc'): break
+                send("ctrl+z")
+                sleep(pause)
+
+        # Fast chosen amount redo
+        elif is_clipped(custom_redo):
+            for i in range(amount):
+                if is_clipped('esc'): break
+                send("ctrl+x")
+                sleep(pause)
+
         # Fast add block
-        if is_clipped(lclick):
+        elif is_clipped(lclick):
             click()
 
         # Fast erase block
@@ -116,30 +159,6 @@ def shortcut(stopnow, shortcuts, mypid):
         # Fast redo
         elif is_clipped(redo):
             send("ctrl+x")
-
-        # Fast chosen amount add
-        elif is_clipped(custom_lclick):
-            for i in range(amount):
-                click()
-                sleep(pause)
-
-        # Fast chosen amount erase
-        elif is_clipped(custom_rclick):
-            for i in range(amount):
-                click("right")
-                sleep(pause)
-
-        # Fast chosen amount undo
-        elif is_clipped(custom_undo):
-            for i in range(amount):
-                send("ctrl+z")
-                sleep(pause)
-
-        # Fast chosen amount redo
-        elif is_clipped(custom_redo):
-            for i in range(amount):
-                send("ctrl+y")
-                sleep(pause)
 
         sleep(pause)
 
