@@ -1,9 +1,5 @@
-
 *.pyc
 *.scape
-log/town.log
-log/town_old.log
-townshell.cfg
 dist
 temp
 build
@@ -12,6 +8,7 @@ backup
 pyinstall
 pyinstall2
 pyinstall3
-setup.py
-townshell.bat
 __pycache__
+setup.py
+townshell.cfg
+townshell.bat

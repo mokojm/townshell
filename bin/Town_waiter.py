@@ -594,23 +594,24 @@ def init_townshell():
 
         # Case where the path was not found the user is asked to provide it
         if scapedir == "":
-            scapedir = input(
-                """Townscaper saved files directory was not found.
-            Drag and drop the directory to the command line or copy-paste the path of the directory
-            Path : """
-            )
+            root.warning("Townscaper saved files directory was not found")
+            # scapedir = input(
+            #     """Townscaper saved files directory was not found.
+            # Drag and drop the directory to the command line or copy-paste the path of the directory
+            # Path : """
+            # )
 
-            if scapedir.startswith('"'):
-                scapedir = scapedir[1:-1]
+            # if scapedir.startswith('"'):
+            #     scapedir = scapedir[1:-1]
 
-            # Case where the provided path is not correct
-            if exists(scapedir) is False:
-                root.error(
-                    """%s does not exist.
-                'listfiles' will not work. Please use command 'loadpath' to provide Townscaper saved files directory""",
-                    scapedir,
-                )
-                return False
+            # # Case where the provided path is not correct
+            # if exists(scapedir) is False:
+            #     root.error(
+            #         """%s does not exist.
+            #     'listfiles' will not work. Please use command 'loadpath' to provide Townscaper saved files directory""",
+            #         scapedir,
+            #     )
+            #     return False
 
         # Case the path is correct
         update_cfg("scapedir", scapedir)
