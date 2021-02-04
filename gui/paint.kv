@@ -1,0 +1,69 @@
+#:set Demop {"color": "Pictures\\Paint_color.png", "filter": "Pictures\\Paint_filter.png", "hf": "Pictures\\Paint_hf.png"}
+#: import Window kivy.core.window.Window
+#:import Factory kivy.factory.Factory
+
+<PaintScreen>:
+	
+	box_color: box_color
+	box_filter: box_filter
+	box_hf: box_hf
+	image: image
+
+    FloatLayout:
+        pos: 0,0
+        size: root.width, root.height
+
+    	BoxColor:
+    		id: box_color
+    		values: ["", "R", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14"]
+    		myText: 'Colors'
+            pos_hint: {"x":0.05, "y":0.8}
+            size_hint: 0.2, 0.03
+
+        BoxColor:
+        	id: box_filter
+        	values: ["", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14"]
+        	myText: 'Filters'
+            pos_hint: {"x":0.05, "y":0.7}
+            size_hint: 0.2, 0.03
+
+        BoxHeightFilter:
+            id: box_hf
+        	pos_hint: {"x":0.05, "y":0.55}
+        	size_hint: 0.4, 0.06
+
+        TownButton:
+            normal_color: 0.953, 0.890, 0.714, 1
+            down_color: 1, 1, 0.714, 1
+            size_hint: (0.45, 0.1)
+            pos_hint: {"center_x":0.75, "center_y":0.3}
+            on_release: 
+            	root.save_to_clipboard()
+
+            my_text: "Save to Clipboard"
+
+        BoxUndoRedo:
+            pos_hint: {"x":0.02, "y":0.88}
+            size_hint: 0.25, 0.1
+
+        Image:
+        	id: image
+            pos_hint: {"x": 0.50, "y":0.4}
+            size_hint: 0.55, 0.55
+            source: 
+                Demop["color"] if box_color.mouse else \
+                Demop["filter"] if box_filter.mouse else \
+                Demop["hf"] if box_hf.mouse else \
+                Demop["color"]
+
+        TownButton:
+            normal_color: 1, 0.702, 0.682, 1
+            down_color: 1, 0.902, 0.882, 1
+            size_hint: (0.2, 0.1)
+            pos_hint: {"center_x":0.88, "center_y":0.07}
+            on_release: 
+            	if root.manager != None: root.manager.transition.direction = "left"; 
+            	root.manager.current = 'menu'
+            my_text: "Back"
+
+

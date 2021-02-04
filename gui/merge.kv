@@ -1,0 +1,125 @@
+#:set Demop {"color": "Pictures\\Paint_color.png", "filter": "Pictures\\Paint_filter.png", "hf": "Pictures\\Paint_hf.png"}
+#: import Window kivy.core.window.Window
+#:import Factory kivy.factory.Factory
+#:import Clipboard kivy.core.clipboard.Clipboard
+
+
+<BoxClip>:
+    mousepos: Window.mouse_pos
+    mouse: True if self.collide_point(root.mousepos[0],root.mousepos[1]) else False
+	boxclip: clip_text
+    name: 'boxclip'
+	MyLabel:
+		pos_hint: {'x':0, 'center_y':0.5}
+		size_hint: 0.1, None
+		text: "Clip :"
+
+	TextInput:
+        button_radius: 5
+        color: 0,0,0,1
+        font_size: self.height/2
+        font_name: 'Garamond'
+        multiline: True
+        pos_hint: {'x':0.1, 'center_y':0.5}
+        size_hint: 0.6, None
+        size:0,30
+        id: clip_text
+        text: ""
+        background_normal: ""
+        background_color: 1,1,1,0
+        cursor_color: 0,0,0,1
+        on_text_validate: root.checkClip()
+
+        canvas.before:
+
+            Color:
+                rgba: 0,0,0,1        
+
+            Line:
+                width: 1
+                rounded_rectangle: self.x, self.y, self.width, self.height, self.button_radius
+        
+
+    TownButton:
+        normal_color: 0.714, 0.827, 0.953, 1
+        down_color: 0.714, 0.9, 1, 1
+        pos_hint: {'x':0.72, 'center_y':0.5}
+        size_hint: 0.20, 0.7
+        my_text: "Save"
+        on_release: 
+            clip_text.text = Clipboard.paste()
+            root.checkClip()
+
+
+
+<MergeScreen>:
+	
+	add: add
+	delb: delb
+    boxclip: boxclip
+
+    FloatLayout:
+        pos: 0,0
+        size: root.width, root.height
+
+    	BoxClip:
+            id: boxclip
+            pos_hint: {"x":0.02, "y":0.75}
+            size_hint: 0.5, 0.1
+
+        BoxClip:
+            pos_hint: {"x":0.02, "y":0.65}
+            size_hint: 0.5, 0.1
+
+        AddButton:
+            pos_hint: {"x":0.02, "y":0.55}
+            id: add
+            name: 'add'
+            size_hint: (None, None)
+            size: 30, 30
+            on_release: root.add_boxclip()
+            text: "+"
+
+        AddButton:
+            id: delb
+            name: 'delb'
+            pos: add.x + add.width, add.y
+            size_hint: (None, None)
+            size: 30, 30
+            on_release: root.del_boxclip()
+            text: "-"
+
+        TownButton:
+            normal_color: 0.953, 0.890, 0.714, 1
+            down_color: 1, 1, 0.714, 1
+            size_hint: (0.45, 0.1)
+            pos_hint: {"center_x":0.75, "center_y":0.3}
+            on_release: 
+            	root.save_to_clipboard()
+
+            my_text: "Save to Clipboard"
+
+        BoxUndoRedo:
+            pos_hint: {"x":0.02, "y":0.88}
+            size_hint: 0.25, 0.1
+
+        Image:
+            pos_hint: {"x": 0.50, "y":0.4}
+            size_hint: 0.55, 0.55
+            source: "Pictures\\Merge.png"
+        #         Demop["color"] if box_color.mouse else \
+        #         Demop["filter"] if box_filter.mouse else \
+        #         Demop["hf"] if box_hf.mouse else \
+        #         Demop["color"]
+
+        TownButton:
+            normal_color: 1, 0.702, 0.682, 1
+            down_color: 1, 0.902, 0.882, 1
+            size_hint: (0.2, 0.1)
+            pos_hint: {"center_x":0.88, "center_y":0.07}
+            on_release: 
+            	if root.manager != None: root.manager.transition.direction = "down"; 
+            	root.manager.current = 'menu'
+            my_text: "Back"
+
+

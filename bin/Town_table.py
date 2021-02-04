@@ -13,11 +13,14 @@ from os import environ, mkdir
 from os.path import exists
 from time import sleep
 
-from Town_waiter import *
+try:
+    from bin.Town_waiter import *
+except ModuleNotFoundError:
+    sys.path.append(".")
+    from bin.Town_waiter import *
 
 # Logging objects
 # Main logger
-if exists('log') is False: mkdir('log')
 handler = logging.FileHandler(environ.get("LOGFILE", "log\\town.log"))
 formatter = logging.Formatter(
     "{asctime} : [{name}:{funcName}] {levelname} :{message}", style="{"
@@ -50,13 +53,12 @@ Type help or ? to list all commands.\n"""
     intro = "\nWelcome to TownShell !\n" + main_command
     prompt = "T> "
     file = None
-    completekey='tab'
+    completekey = "tab"
 
     def preloop(self):
         """Initialize the data
         - Fetch the directory of Townscaper saved files
-        - List all saved files if found
-        - Update backup of saved files"""
+        - Start Shortcuts"""
         job = init_townshell()
 
         # Job to be executed

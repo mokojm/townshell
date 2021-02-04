@@ -1,4 +1,5 @@
 import json
+import sys
 import xml.etree.ElementTree as ET
 from ast import literal_eval as make_tuple
 from ctypes import windll
@@ -7,16 +8,18 @@ from getpass import getuser
 from glob import glob
 from logging import getLogger
 from os import mkdir, remove, scandir
-from os.path import basename, dirname, exists, getmtime, isdir, join, splitext
+from os.path import (abspath, basename, dirname, exists, getmtime, isdir, join,
+                     splitext)
+from random import choice
 from shutil import copy2, get_terminal_size, move
 from threading import Event, Thread
 from time import sleep
 
 import pyperclip
+from bin.Town_clipper import *
+from bin.Town_cooker import *
+from bin.Town_shortcuts import shortcut
 from keyboard import add_hotkey
-from Town_clipper import *
-from Town_cooker import *
-from Town_shortcuts import shortcut
 
 # Logging options
 root = getLogger("Town.waiter")
@@ -50,6 +53,19 @@ ALLCOLORS = {
     14: "white",
 }
 
+# To handle .exe treatment
+BUNDLE_DIR = getattr(sys, "_MEIPASS", abspath(dirname(__file__)))
+
+
+def exePath(mypath):
+    if exists(mypath):
+        return mypath
+    elif exists(abspath(join(BUNDLE_DIR, mypath))):
+        return abspath(join(BUNDLE_DIR, mypath))
+    else:
+        return mypath
+
+
 # The configuration file
 TOWNSHELL_PATH = "townshell.cfg"
 
@@ -74,10 +90,6 @@ version = {}
 global clipHistory
 clipHistory = {"previous": [], "current": "", "future": []}
 
-# Last modified Townscaper saved file path
-global last_modified
-last_modified = ""
-
 # Directory where all Townscaper saved files are
 scapedir = ""
 
@@ -87,22 +99,29 @@ def print_colors():
     for digit, color in ALLCOLORS.items():
         print("{} ==> {}".format(digit, color))
 
+
 # Fetch the log level from 'townshell.cfg'
 def get_loglevel():
 
-    #Checks that townshell.cfg exists
-    if exists("townshell.cfg") is False:
-        myTownshell = copyc(r"bin\tmp_townshell.cfg", "townshell.cfg")
-        if myTownshell is None: 
+    # Checks that townshell.cfg exists
+    if exists(TOWNSHELL_PATH) is False:
+        myTownshell = copyc(exePath(r"tmp_townshell.cfg"), TOWNSHELL_PATH)
+        if myTownshell is None:
             return "INFO"
 
-    loglevel = read_cfg('loglevel')
+    loglevel = read_cfg("loglevel")
     if loglevel not in ("INFO", "WARNING", "DEBUG", "ERROR"):
         print("Invalid log level found in 'townshell.cfg'. INFO will be used")
 
         return "INFO"
     else:
         return loglevel
+
+
+# Copy a corvox dictionnary so that it's fully independent from the original one
+def dictCopy(corvox):
+    return {key: dictvalues.copy() for key, dictvalues in corvox.items()}
+
 
 # Customized copy2 to handle logging constraints
 # rename: If True the copy will be renamed in destination if any file with the same name is found
@@ -132,13 +151,13 @@ def copyc(src, dst, rename=False, erase=False):
             temp = move(dst, TEMP)
         except:
             root.exception("Backup of %s failed, %s will not be copied", dst, src)
-            stream.error("Copy of %s failed", src)
+
             return
 
     # Case the file exists already in destination and rename = erase = False
     elif exists(dst):
         root.error("%s already exists in %s, no file copied", src, dst)
-        stream.error("%s already exists in %s, no file copied", src, dst)
+
         return
 
     # Copy
@@ -148,19 +167,13 @@ def copyc(src, dst, rename=False, erase=False):
 
     except PermissionError:
         root.exception("Copy of %s in %s not allowed", src, dst)
-        stream.error(
-            "Copy of %s in %s not allowed, the file was copied. check 'town.log' for more details",
-            src,
-            dst,
-        )
+
         if erase:
             move(temp, dst)
 
     except:
         root.exception("Error during copy of %s in %s", src, dst)
-        stream.error(
-            "Error during copy of %s in %s. Check 'town.log' for more details", src, dst
-        )
+
         if erase:
             move(temp, dst)
 
@@ -232,7 +245,7 @@ def update_cfg(key, value):
                 value
             )
             root.warning(toprint)
-            stream.error(toprint)
+
             return
 
         else:
@@ -247,7 +260,6 @@ def update_cfg(key, value):
     except:
         toprint("Error on saving the updated {}".format(TOWNSHELL_PATH))
         root.error(toprint)
-        stream.error(toprint)
 
     # Final return
     root.info("%s successfully updated", TOWNSHELL_PATH)
@@ -298,7 +310,6 @@ def list_scapefiles(char="", extended=False):
     # Case nothing found
     if candidates == []:
         root.warning("No Townscaper saved files were found")
-        stream.warning("No Townscaper saved files were found")
         return
 
     # Other cases
@@ -529,21 +540,17 @@ def print_scapefiles(max_amount=5, args=None):
 
 
 # Initialize Townshell
-# - Fetch the directory of Townscaper saved files
-# - List all saved files if found
-# - Update backup of saved files
 def init_townshell():
 
     global scapedir
     global mypid
 
-    # Print Title
-    print(TITLE)
+    # Print Title (deprecated)
 
     # Fetch the pid of TownShell
     mypid = windll.user32.GetForegroundWindow()
 
-    #Checks for logs
+    # Checks for logs
     if exists("log") is False:
         mkdir("log")
 
@@ -565,15 +572,15 @@ def init_townshell():
     # Start keyboard shortcuts
     start_shortcuts()
 
-    # Print keyboard shortcuts
-    print_shortcuts()
+    # Print keyboard shortcuts (deprecated)
+    # print_shortcuts()
 
     # Checks townshell.cfg to find the directory where Townscaper saved files are
     scapedir = read_cfg("scapedir")
 
     # Checks that scapedir (the directory where Townscaper saved files are stored is filled) is OK
     if isinstance(scapedir, str) and exists(scapedir):
-        stream.info("Townscaper saved files are in %s", scapedir)
+        pass
 
     else:
 
@@ -598,17 +605,17 @@ def init_townshell():
 
             # Case where the provided path is not correct
             if exists(scapedir) is False:
-                stream.error(
+                root.error(
                     """%s does not exist.
-                'listfiles' will not work. Please use command 'loadpath' to provide Townscaper saved files directory""", scapedir
+                'listfiles' will not work. Please use command 'loadpath' to provide Townscaper saved files directory""",
+                    scapedir,
                 )
                 return False
 
         # Case the path is correct
         update_cfg("scapedir", scapedir)
-        stream.info("Townscaper saved files are in %s", scapedir)
 
-    # Look for a job to be read and executed
+    # Look for a job to be read and executed (unsafe not checked for a while)
     job_path = read_cfg("job")
     if isinstance(job_path, str) and exists(job_path):
         with open(job_path) as job_file:
@@ -622,6 +629,8 @@ def init_townshell():
 # - Level it as required using function level
 # - Save it using function save
 def level_town(args):
+
+    root.debug(f"Input settings : {args}")
 
     # Checking the provided args
     # args is a dictionary so we'll analyze each arg one by one
@@ -644,7 +653,10 @@ def level_town(args):
             char = arg
 
         # Height
-        if key in ("height", "h") and (
+        if key in ("height", "h") and isinstance(arg, int):
+            height = arg
+
+        elif key in ("height", "h") and (
             arg.isnumeric() or (arg.startswith("-") and arg[1:].isnumeric())
         ):
             height = int(arg)
@@ -654,22 +666,34 @@ def level_town(args):
             coord = make_tuple(arg)
 
         # Max_height
+        elif key in ("max_height", "maxh") and isinstance(arg, int):
+            max_height = arg
+
         elif key in ("max_height", "maxh") and arg.isnumeric():
             if int(arg) > 255:
-                stream.warning("Maximum height cannot exceed 255")
-                root.warning("Invalid max height : %s", arg)
+                root.warning(
+                    "Invalid max height : %s ; Maximum height cannot exceed 255", arg
+                )
             else:
                 max_height = int(arg)
 
         # Min_height
+        elif key in ("min_height", "minh") and isinstance(arg, int):
+            min_height = arg
+
         elif key in ("min_height", "minh") and arg.isnumeric():
             if int(arg) > max_height:
-                stream.warning("Minimum height cannot be superior to maximum height")
-                root.warning("Invalid min height : %s", arg)
+
+                root.warning(
+                    "Invalid min height : %s ; Minimum height cannot be superior to maximum height",
+                    arg,
+                )
             else:
                 min_height = int(arg)
 
         # Plain
+        elif key in ("plain", "p") and isinstance(arg, bool):
+            plain = arg
         elif key in ("plain", "p"):
             if (arg.isnumeric() and int(arg) > 0) or (arg == "True"):
                 plain = True
@@ -686,15 +710,14 @@ def level_town(args):
 
     # Checking that height has been filled
     if height is None:
-        stream.error("No valid height was found")
+
         root.warning("No valid height was found")
         return
 
-
     # PREVIOUSLY: Checking that 'char' has been provided last_modified is used otherwise
-    # 2020/11/15 : lastClip is used instead of last_modified if 'char' was not provided 
+    # 2020/11/15 : lastClip is used instead of last_modified if 'char' was not provided
     if char is None and lastClip is None:
-        stream.warning("No valid clip from Townscaper.\nClick 'Save to Clipboard' on Townscaper then try again")
+
         root.info("No valid clip from Townscaper")
         return
     elif char is None:
@@ -706,11 +729,13 @@ def level_town(args):
 
     storeClip(char)
 
-    #Corvox from clip    
+    # Corvox from clip
     corvox = clipToCorvox(char)
-    if corvox is None: return
+    if corvox is None:
+        return
 
     # Leveling of appropriate data
+    root.debug("Input right before leveling : {}".format([height, coord, max_height, min_height, plain, color, color_filter]))
     corvox = level(
         corvox, height, coord, max_height, min_height, plain, color, color_filter
     )
@@ -721,14 +746,16 @@ def level_town(args):
     # Store the new clip
     storeClip(new_clip)
 
+    # Success
+    return True
+
 
 # Do all operations to level the town as required
 # - Checks the args provided
-# - Find the file spotted
-# - Load the file using function load
 # - Paint it as required using function paint
-# - Save it using function save
 def paint_town(args):
+
+    root.debug(f"Input settings : {args}")
 
     # Checking the provided args
     # args is a dictionary so we'll analyze each arg one by one
@@ -753,13 +780,18 @@ def paint_town(args):
         # Color
         if key in ("color", "c"):
 
+            # color is already a tuple
+            if isinstance(arg, tuple):
+                color = tuple(c for c in arg if c in ALLCOLORS)
             # color is between 0 and 14
-            if arg.isnumeric() and 0 <= int(arg) <= 14:
+            elif arg.isnumeric() and 0 <= int(arg) <= 14:
                 color = int(arg)
             # Invalid color digit
             elif arg.isnumeric():
-                stream.error("Color needs to be between 0 and 14 included")
-                root.warning("Color %s is not a valid one", arg)
+                root.warning(
+                    "Color %s is not a valid one ; Color needs to be between 0 and 14 included",
+                    arg,
+                )
                 return
             # Random color
             elif arg.lower() in ("r", "random"):
@@ -772,18 +804,27 @@ def paint_town(args):
         # Old color
         elif key in ("color_filter", "cf"):
 
+            if arg == ():
+                pass
+            # old color is already a tuple
+            elif isinstance(arg, tuple):
+                color_filter = tuple(c for c in arg if c in ALLCOLORS)
             # old color needs to be between 0 and 14
-            if arg.isnumeric() and 0 <= int(arg) <= 14:
+            elif arg.isnumeric() and 0 <= int(arg) <= 14:
                 color_filter = int(arg)
 
             # Invalid color digit
             elif arg.isnumeric():
-                stream.error("Old color needs to be between 0 and 14 included")
+
                 root.warning("Old color %s is not a valid one", arg)
 
         # Height
         elif key in ("height", "h"):
-            if arg.isnumeric():
+            if arg is None:
+                pass
+            elif isinstance(arg, (int, tuple)):
+                height = arg
+            elif arg.isnumeric():
                 height = int(arg)
             elif "," in arg:
                 height = make_tuple(arg)
@@ -792,9 +833,8 @@ def paint_town(args):
         # Column, coord and Details are not implemented yet
         ###
 
-
     if char is None and lastClip == "":
-        stream.warning("No valid clip from Townscaper.\nClick 'Save to Clipboard' on Townscaper then try again")
+
         root.info("No valid clip from Townscaper")
         return
     elif char is None:
@@ -804,14 +844,16 @@ def paint_town(args):
     elif isClip(char) is False:
         return
 
-    #The clip saved for undo/redo
+    # The clip saved for undo/redo
     storeClip(char)
 
-    #Corvox from clip    
+    # Corvox from clip
     corvox = clipToCorvox(char)
-    if corvox is None: return
+    if corvox is None:
+        return
 
-    # Leveling of appropriate data
+    # Painting of appropriate data
+    root.debug(f"Settings : color :{color}, cf: {color_filter}, height: {height}")
     corvox = paint(corvox, color, color_filter, height, column, coord, details)
 
     # Copy to clipboard
@@ -820,12 +862,283 @@ def paint_town(args):
     # Store the new clip
     storeClip(new_clip)
 
+    # Success
+    return True
+
+
+# Do all operations to merge the args provided
+def merge_town(args):
+
+    root.debug(f"Input settings : {args}")
+
+    toMerge = []
+    for i, arg in enumerate(args.values()):
+
+        # Checks that it's an actual clip
+        if isClip(arg) is False:
+            root.debug(f"Invalid clip : {arg}")
+            root.warning("Invalid clip, no merge done")
+            return
+
+        # Converts the clip and add it to toMerge
+        else:
+            toMerge.append(clipToCorvox(arg))
+
+            # The first clip is stored for undo/redo
+            if i == 0:
+                storeClip(arg)
+
+    # Merging of dict
+    corvox = merge(*toMerge)
+
+    # Copy to clipboard
+    new_clip = corvoxToClip(corvox)
+
+    # Store the new clip
+    storeClip(new_clip)
+
+    # Success
+    return True
+
+
+# Copy a structure to another height a given amount of time
+# Shortly, it's the combination of level and merge
+def replicate_town(args):
+
+    root.debug(f"Input settings : {args}")
+
+    # Checking the provided args
+    # args is a dictionary so we'll analyze each arg one by one
+    iter_args = iter(args.items())
+
+    # Then the other args are analyzed
+    # Expected input
+    char = None  # chain of character of the file to be modified
+    copyAmount = 1
+    height = None
+    max_height = 255
+    min_height = -1
+    coord = None
+    plain = False
+    color = None
+    color_filter = None
+    for key, arg in iter_args:
+
+        # File to modify (char)
+        if key == "input1":
+            char = arg
+
+        # Amount of copy
+        if key in ("copy", "c") and isinstance(arg, int):
+            copyAmount = arg
+        elif (
+            key in ("copy", "c")
+            and isinstance(arg, str)
+            and (arg.isnumeric() or (arg.startswith("-") and arg[1:].isnumeric()))
+        ):
+            copyAmount = int(arg)
+
+        # Height
+        elif key in ("height", "h") and isinstance(arg, int):
+            height = arg
+
+        elif key in ("height", "h") and (
+            arg.isnumeric() or (arg.startswith("-") and arg[1:].isnumeric())
+        ):
+            height = int(arg)
+
+        # Coord
+        elif key == "coord":
+            coord = make_tuple(arg)
+
+        # Plain
+        elif key in ("plain", "p") and isinstance(arg, bool):
+            plain = arg
+        elif key in ("plain", "p"):
+            if (arg.isnumeric() and int(arg) > 0) or (arg == "True"):
+                plain = True
+
+        # Color
+        elif key in ("color", "c"):
+            if arg.lower() in ("r", "random"):
+                color = "random"
+
+            elif arg.isnumeric():
+                color = int(arg)
+
+        # color_filter
+        elif key in ("color_filter", "cf"):
+            if arg.isnumeric():
+                color_filter = int(arg)
+
+    # Checking that height has been filled
+    if height is None:
+
+        root.warning("No valid height was found")
+        return
+
+    # PREVIOUSLY: Checking that 'char' has been provided last_modified is used otherwise
+    # 2020/11/15 : lastClip is used instead of last_modified if 'char' was not provided
+    if char is None and lastClip is None:
+
+        root.info("No valid clip from Townscaper")
+        return
+    elif char is None:
+        char = lastClip
+
+    # Checks if 'char' is a clip
+    elif isClip(char) is False:
+        return
+
+    storeClip(char)
+
+    # Corvox from clip
+    initCorvox = clipToCorvox(char)
+
+    if initCorvox is None:
+        return
+
+    toLevel = dictCopy(initCorvox)
+    toMerge = [initCorvox]
+    thisHeight = 0
+    for i in range(copyAmount):
+
+        # The height used for this copy
+        thisHeight += height
+        if thisHeight > 255:
+            break
+
+        # color choice if random has been selected
+        thisColor = choice(ALLCOLORS) if color == "random" else color
+
+        # Leveling of appropriate data
+        corvox = level(
+            toLevel,
+            height,
+            coord,
+            max_height,
+            min_height,
+            plain,
+            thisColor,
+            color_filter,
+        )
+
+        # Adding the dictionnary to toMerge
+        toMerge.append(dictCopy(corvox))
+        # root.debug(toMerge)
+
+    # Merge of all dictionnary : if plain is True, the last becomes the first
+    if plain:
+        toMerge.reverse()
+
+    finalCorvox = merge(*toMerge)
+
+    # Copy to clipboard
+    new_clip = corvoxToClip(finalCorvox)
+
+    # Store the new clip
+    storeClip(new_clip)
+
+    # Success
+    return True
+
+
+# Do all operations for using dig function
+def dig_town(args):
+
+    root.debug(f"Input settings : {args}")
+
+    # Checking the provided args
+    # args is a dictionary so we'll analyze each arg one by one
+    iter_args = iter(args.items())
+
+    # Then the other args are analyzed
+    # Expected input
+    char = None  # chain of character of the file to be modified
+    color_filter = None
+    height = None
+    percent = 1
+
+    for key, arg in iter_args:
+
+        # File to modify (char)
+        if key == "input1":
+            char = arg
+
+        # Percent
+        if key in ("percent", "p"):
+
+            if isinstance(arg, (int, float)) and arg <= 100:
+                percent = arg / 100
+            else:
+                root.warning(f"Invalid percent value {percent}")
+                return
+
+        # Old color
+        elif key in ("color_filter", "cf"):
+
+            if arg == ():
+                pass
+            # old color is already a tuple
+            elif isinstance(arg, tuple):
+                color_filter = tuple(c for c in arg if c in ALLCOLORS)
+            # old color needs to be between 0 and 14
+            elif arg.isnumeric() and 0 <= int(arg) <= 14:
+                color_filter = int(arg)
+
+            # Invalid color digit
+            elif arg.isnumeric():
+
+                root.warning("Old color %s is not a valid one", arg)
+
+        # Height
+        elif key in ("height", "h"):
+            if arg is None:
+                pass
+            elif isinstance(arg, (int, tuple)):
+                height = arg
+            elif arg.isnumeric():
+                height = int(arg)
+            elif "," in arg:
+                height = make_tuple(arg)
+
+    if char is None and lastClip == "":
+
+        root.info("No valid clip from Townscaper")
+        return
+    elif char is None:
+        char = lastClip
+
+    # Checks if 'char' is a clip
+    elif isClip(char) is False:
+        return
+
+    # The clip saved for undo/redo
+    storeClip(char)
+
+    # Corvox from clip
+    corvox = clipToCorvox(char)
+    if corvox is None:
+        return
+
+    # Digging of appropriate data
+    corvox = dig(corvox, color_filter, percent, height)
+
+    # Copy to clipboard
+    new_clip = corvoxToClip(corvox)
+
+    # Store the new clip
+    storeClip(new_clip)
+
+    # Success
+    return True
+
 
 # Store the clip
 def storeClip(clip):
     global clipHistory
-    
-    #Duplicate from the current clip are bypassed
+
+    # Duplicate from the current clip are bypassed
     if clip == clipHistory["current"]:
         return
     else:
@@ -835,7 +1148,7 @@ def storeClip(clip):
 
 
 # Fetch the lastclip
-def undoClip(streamit=True):
+def undoClip():
 
     global clipHistory
 
@@ -844,18 +1157,19 @@ def undoClip(streamit=True):
         clipHistory["future"].append(clipHistory["current"])
         clipHistory["current"] = clipHistory["previous"].pop()
 
-        #To clipboard
+        # To clipboard
         pyperclip.copy(clipHistory["current"])
+
+        # Success
+        return True
 
     # No corresponding files
     else:
-        if streamit: stream.warning(f"No older clip")
         root.info(f"No older clip")
 
 
-
 # Fetch the last future clip (Yes I don't know how to say it)
-def redoClip(streamit=True):
+def redoClip():
 
     global clipHistory
 
@@ -864,48 +1178,56 @@ def redoClip(streamit=True):
         clipHistory["previous"].append(clipHistory["current"])
         clipHistory["current"] = clipHistory["future"].pop()
 
-        #To clipboard
+        # To clipboard
         pyperclip.copy(clipHistory["current"])
+
+        # Success
+        return True
 
     # No corresponding files
     else:
-        if streamit: stream.warning(f"No newer clip")
         root.info(f"No newer clip")
 
 
 # Print the current keyboard shortcuts
 def print_shortcuts():
 
-    #Print whether keyboard shortcuts are active or not
-    if active_shortcuts:
-        print("Keyboard shortcuts : ON")
-    else:
-        print("Keyboard shortcuts : OFF")
+    output = ""
 
-    #Fetch shortcuts
-    shortcuts = read_cfg('shortcuts')
-    if shortcuts is None: return
+    # Print whether keyboard shortcuts are active or not
+    if active_shortcuts:
+        output += "Keyboard shortcuts : ON\n"
+    else:
+        output += "Keyboard shortcuts : OFF\n"
+
+    # Fetch shortcuts
+    shortcuts = read_cfg("shortcuts")
+    if shortcuts is None:
+        return
     shortcuts = iter(shortcuts.items())
 
     # Shorcut to open TownShell
-    print("Press '²' to open TownShell from Townscaper")
+    output += "Press '²' to open TownShell from Townscaper\n"
 
     # First shortcuts
     info_printed = False
     for key, value in shortcuts:
 
-        if key.startswith('custom') and info_printed is False:
-            print("\nTo get precise amount of clicks, enter quickly a few digits, then use the custom shortcuts below :")
+        if key.startswith("custom") and info_printed is False:
+            output += "\nTo get precise amount of clicks, enter quickly a few digits, then use the custom shortcuts below :\n"
             info_printed = True
 
-        if key == 'pause':
-            print(f"\nIntervals between clicks (s) : {value}")
+        if key == "pause":
+            output += f"\nIntervals between clicks (s) : {value}\n"
 
         else:
-            print("'{}' ==> '{}'".format(key, value))
+            output += f"'{key}' ==> '{value}'\n"
 
     # How to modify shortcuts
-    print("Shortcuts and intervals can be modified in 'townshell.cfg'")
+    output += "Shortcuts and intervals can be modified in 'townshell.cfg'\n"
+
+    # Output is directly printed by default but can be returned
+    return output
 
 
 # Class of Thread to have shortcuts handled in another thread
@@ -920,11 +1242,12 @@ class ShortcutThread(Thread):
 
         # Hotkeys
         myShortcuts = read_cfg("shortcuts")
-        add_hotkey(myShortcuts["undo_command"], undoClip, args=[False], suppress=True)
-        add_hotkey(myShortcuts["redo_command"], redoClip, args=[False], suppress=True)
+        add_hotkey(myShortcuts["undo_command"], undoClip, args=[], suppress=True)
+        add_hotkey(myShortcuts["redo_command"], redoClip, args=[], suppress=True)
 
         # Fetch the keyboard shortcuts settings from townshell.cfg
         shortcut(self.event, myShortcuts, mypid)
+
 
 # Start a thread activating the keyboard shortcuts
 def start_shortcuts():
@@ -935,7 +1258,7 @@ def start_shortcuts():
 
     # Checking that another thread is not executed already
     if active_shortcuts:
-        stream.warning("Keyboard shortcuts are already activated")
+        root.warning("Keyboard shortcuts are already activated")
         return
 
     # Initialize the event that control whether shortcuts are active or not
@@ -946,8 +1269,11 @@ def start_shortcuts():
     new_thread = ShortcutThread(stopnow)
     new_thread.start()
     active_shortcuts = True
-    stream.info("Keyboard shortcuts are now active")
+
     root.info("Keyboard shortcuts are now active")
+
+    # Success
+    return True
 
 
 # Stop the thread handling the shortcuts
@@ -958,14 +1284,18 @@ def stop_shortcuts():
 
     # Checking that another thread is not executed already
     if active_shortcuts is False:
-        stream.warning("No shortcuts activated")
+        root.warning("No shortcuts activated")
         return
 
     # The event is activated and shortcuts is stopped
     stopnow.set()
     active_shortcuts = False
-    stream.info("Keyboard shortcuts have been deactivated")
+
     root.info("Keyboard shortcuts have been deactivated")
+
+    # Success
+    return True
+
 
 # Return True if the provided string is a clip
 # Only bits and dense are checked assuming that it's enough to check
@@ -982,10 +1312,11 @@ def isClip(clip):
         root.exception("Error in isclip but let's keep working")
         return False
 
+
 # Thread that checks whether TownShell is the active application and checks the content of the clipboard
 # NOTE : The implementation could change the "Groups" features are implemented (TODO)
 class ClipboardThread(Thread):
-    def __init__(self):  
+    def __init__(self):
         Thread.__init__(self)
         self.daemon = True
 
@@ -997,23 +1328,22 @@ class ClipboardThread(Thread):
         prev_clip = ""
 
         while True:
-            #Fetch the foreground application
+            # Fetch the foreground application
             cur_foreground = windll.user32.GetForegroundWindow()
 
             if mypid == cur_foreground:
 
-                #The clipboard is checked
+                # The clipboard is checked
                 clip = pyperclip.paste()
 
-                #Check that it's a valid clip from Townscaper
+                # Check that it's a valid clip from Townscaper
                 if clip and prev_clip != clip and isClip(clip):
 
                     lastClip = clip
 
-            #Wait between loops
+            # Wait between loops
             prev_clip = clip
             sleep(0.5)
-
 
 
 # Transform a dictionary corvox to string and copy it to clipboard
@@ -1022,16 +1352,19 @@ def corvoxToClip(corvox):
     dense = sparseToDense(corvoxToSparse(corvox))
     bits = denseToBits(dense) if dense else None
     clip = bitsToClip(bits) if bits else None
-    
+
     if clip:
         pyperclip.copy(clip)
         root.info("Corvox copied on clipboard")
-        stream.info("Click 'Load from Clipboard' to get it")
+
         return clip
     else:
-        stream.error("Copy for 'Load from Clipboard' failed. Set DEBUG on 'loglevel' in 'townshell.cfg' and try again for more information")
-        root.error("Copy for 'Load from Clipboard' failed. Set DEBUG on 'loglevel' in 'townshell.cfg' and try again for more information")
+
+        root.error(
+            "Copy for 'Load from Clipboard' failed. Set DEBUG on 'loglevel' in 'townshell.cfg' and try again for more information"
+        )
         return
+
 
 # Transform a clipboard content of Townscaper into a corvox dictionary
 def clipToCorvox(clip):
@@ -1044,6 +1377,8 @@ def clipToCorvox(clip):
     if corvox:
         return corvox
     else:
-        stream.error("Invalid clipboard content. Set DEBUG on 'loglevel' in 'townshell.cfg' and try again for more information")
-        root.error("Invalid clipboard content. Set DEBUG on 'loglevel' in 'townshell.cfg' and try again for more information")
+
+        root.error(
+            "Invalid clipboard content. Set DEBUG on 'loglevel' in 'townshell.cfg' and try again for more information"
+        )
         return

@@ -1,0 +1,382 @@
+#: import Window kivy.core.window.Window
+#:import Factory kivy.factory.Factory
+#:set Color {"R":(1,1,1,1), "0":(0.925, 0.267, 0.267,1), "1":(0.953, 0.553, 0.357,1), "2":(0.953, 0.839, 0.400, 1), "3":(0.851, 0.914, 0.463, 1), "4":(0.675, 0.765, 0.486, 1), "5":(0.518, 0.839, 0.384, 1), "6":(0.271, 0.812, 0.439, 1), "7":(0.286, 0.784, 0.647, 1), "8":(0.286, 0.729, 0.812, 1), "9":(0.325, 0.604, 1, 1), "10":(0.447, 0.475, 0.812, 1), "11":(0.725, 0.341, 0.459, 1), "12":(0.812, 0.667, 0.549, 1), "13":(0.698, 0.643, 0.616, 1), "14":(0.871,0.871,0.871,1)}
+#:import Animation kivy.animation.Animation
+#:import Clock kivy.clock.Clock
+
+<MyLabel>:
+    text_size: self.size
+    valign: 'middle'
+    color: 0,0,0,1
+    font_name: 'Garamond'
+    init_font_size: 18
+    font_size: min(self.height, self.width)/60*self.init_font_size
+
+<MySlider@Slider>:
+    cursor_image: "Pictures\\TownShell.ico"
+    cursor_size: '32sp', '32sp'
+
+<UpDownTemp@Button>:
+    #background_color: 0,0,0,0 if self.disabled else 1,1,1,1  # the last zero is the critical on, make invisible
+    text_color: 0,0,0,0
+    background_normal: ""
+    background_down: self.background_normal
+    background_disabled_normal: "Pictures\\empty.png"
+    background_disabled_down: "Pictures\\empty.png"
+    opacity: 1 if self.state == 'normal' else 0 if self.disabled else 0.3
+
+<UpButton@UpDownTemp>:
+    background_normal: "Pictures\\Up-button.png"
+
+<DownButton@UpDownTemp>:
+    background_normal: "Pictures\\Down-button.png"
+
+<BoxUpDown>:
+    
+    value: 0
+    max: 255
+    min: 0
+    noneAvailable: False
+    input_filter: 'int'
+    upb: upb
+    downb: downb
+    button_radius: 5
+
+    canvas.before:
+
+        Color:
+            rgba: 0,0,0,1        
+
+        Line:
+            width: 1
+            rounded_rectangle: self.x, self.y, self.width, self.height, self.button_radius
+    
+    SlideTextInput:
+        pos_hint: {'x':0, 'y': 0}
+        size_hint: 0.75, 1
+        #size: 0, 30
+        text: str(root.value)
+        input_filter: root.input_filter
+        on_text_validate: 
+            root.myTextFunc(text=self.text)
+            root.myTextCheck()
+            self.text = str(root.value)
+        on_focus:
+            root.myTextFunc(text=self.text)
+            root.myTextCheck()
+            self.text = str(root.value)
+
+    DownButton:
+        id: downb
+        pos_hint: {"right":0.95, 'y':0}
+        size_hint: None, None
+        size: 30, 21
+        disabled: True if root.value <= root.min or root.value == 'None' else False
+        on_press: root.downpress()
+        on_release:
+            root.stopupdate() 
+            root.downrelease()
+
+    UpButton:
+        id: upb
+        pos_hint: {"right":0.95, 'top':1}
+        size_hint: None, None
+        size: 30, 21
+        disabled: True if root.value >= root.max else False
+        on_press: root.uppress()
+        on_release:
+            root.stopupdate()
+            root.uprelease()
+
+<SlideTextInput>:
+    color: 0,0,0,1
+    font_name: 'Garamond'
+    font_size: self.height/2
+    multiline: False
+    input_filter: 'int'
+    button_radius: 5
+    background_normal: ""
+    background_color: 1,1,1,0
+
+    cursor_color: 0,0,0,1
+
+
+<MySpinnerOption@SpinnerOption>:
+    background_color: 1,1,1,0 # the last zero is the critical on, make invisible
+    button_radius: 5
+    rect_size: 25, 25
+    size_hint: None, None
+    size: 30, 30
+    color: 0,0,0,1 if self.text in ("Add", "R") else 0,0,0,0
+    canvas.before:
+        Color:
+            rgba: Color.get(self.text, (0,0,0,0))
+
+        RoundedRectangle:
+            pos: self.x+2, self.y+3
+            size: self.rect_size
+            radius: [self.button_radius,]
+
+        Color:
+            rgba: 0,0,0,1            
+
+        Line:
+            width: 1
+            rounded_rectangle: self.x+2, self.y+3, self.rect_size[0], self.rect_size[1], self.button_radius
+
+<ColorSpinner@Spinner>:
+    
+    name: 'colspin'
+    rect_size: 30, 30
+    size_hint: (None, None) 
+    button_radius: 5
+    text: ""
+    values: ["", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14"]
+    background_color: 1,1,1,0
+    background_down: ''
+    color: 0,0,0,1 if self.text in ("Add", "R") else 0,0,0,0
+    option_cls: Factory.get("MySpinnerOption")
+
+    canvas.before:
+        Color:
+            rgba: Color.get(self.text, (0,0,0,0))
+        RoundedRectangle:
+            pos: self.pos
+            size: self.rect_size
+            radius: [self.button_radius,]
+
+        Color:
+            rgba: 0,0,0,1
+        Line:
+            width: 1
+            rounded_rectangle: self.x, self.y, self.rect_size[0], self.rect_size[1], self.button_radius
+
+
+<TownButton@Button>:
+    background_color: 1,1,1,0  # the last zero is the critical on, make invisible
+    normal_color: (0.78, 0.953, 0.714, 1)
+    down_color: (0.98, 1, 0.914, 1)
+    button_radius: 20
+    my_text: "Button"
+    text_color: (0, 0, 0, 1)
+    mousepos: Window.mouse_pos
+    mouse: True if self.collide_point(root.mousepos[0],root.mousepos[1]) else False
+
+    font_name: 'Garamond'
+    font_size: min(self.height, self.width)/60*30 if root.mouse else min(self.height, self.width)/60*28
+    text: self.my_text
+    color: self.text_color
+    canvas.before:
+
+        Color:
+            rgba: self.normal_color if self.state=='normal' else self.down_color  # visual feedback of press
+
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [self.button_radius,]
+
+        Color:
+            rgba: 0,0,0,1        
+
+        Line:
+            width: 1
+            rounded_rectangle: self.x, self.y, self.width, self.height, self.button_radius
+
+<NotifPopUp@Popup>:
+    id:pop
+    title: 'Undo'
+    mytext: "Click 'Load from Clipboard'"
+    level: "ERROR"
+    colevel: {"INFO": (0.78, 0.953, 0.714, 1), "WARNING":(0.953, 0.553, 0.357,1), "ERROR":(1, 0.702, 0.682, 1)}
+    radius: 10
+
+    opacity: 1
+    anim: Animation(opacity=0, pos_hint={'center_x':0.3, 'center_y':0.11}, duration=3, t='out_circ')
+    on_open:
+        self.focus = False
+        self.anim.start(self)
+        Clock.schedule_once(self.dismiss, 3)
+    
+    size_hint: .4, .2
+    pos_hint: {'center_x':0.2, 'center_y':0.11}
+    auto_dismiss: True
+    
+    title_color: 0, 0, 0, 1
+    title_font: 'Garamond'
+    title_size: 18
+    background: "Pictures\\empty.png"
+    background_color: (1, 1, 1, 0)
+    overlay_color: 0, 0, 0, 0
+    separator_color: 0, 0, 0, 1
+    canvas.before:
+
+        Color:
+            rgba: self.colevel[self.level]
+
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [self.radius,]
+    MyLabel:
+        text: root.mytext
+
+<BoxUndoRedo>:
+    orientation: 'horizontal'
+    spacing: 10
+    TownButton:
+        normal_color: 0.714, 0.827, 0.953, 1
+        down_color: 0.714, 0.9, 1, 1
+        my_text: "Undo"
+        on_release: root.undo()
+
+    TownButton:
+        normal_color: 0.714, 0.827, 0.953, 1
+        down_color: 0.714, 0.9, 1, 1
+        on_release: root.redo()
+        my_text: "Redo"
+
+<AddButton@Button>:
+    background_color: 1,1,1,0
+    text_color: (0, 0, 0, 1)
+    color: self.text_color
+    mousepos: Window.mouse_pos
+    mouse: True if self.collide_point(root.mousepos[0],root.mousepos[1]) else False
+
+    font_name: 'Garamond'
+    font_size: 32 if self.mouse else 24
+    canvas.before:
+        Color:
+            rgba: 0,0,0,1
+        Line:
+            width: 1
+            circle:
+                (self.center_x, self.center_y, min(self.width, self.height)
+                / 2)
+<BoxColor>:
+    add_button: add
+    del_button: delb
+    myText: "Color :"
+    mousepos: Window.mouse_pos
+    mouse: True if self.collide_point(root.mousepos[0],root.mousepos[1]) else False
+    MyLabel:
+        id:label
+        name: 'label'
+        pos_hint: {'x':0, 'center_y':0.5}
+        size_hint: 0.5, None
+        text: root.myText
+
+    AddButton:
+        id: add
+        name: 'add'
+        pos_hint: {'x':0.5, 'center_y': 0.5}
+        size_hint: (None, None)
+        size: 30, 30
+        on_release: root.add_color()
+        text: "+"
+
+    AddButton:
+        id: delb
+        name: 'delb'
+        pos: add.x + add.width, add.y
+        size_hint: (None, None)
+        size: 30, 30
+        on_release: root.del_color()
+        text: "-"
+
+<BoxFilterColor@FloatLayout>:
+    myfc: fc
+    mousepos: Window.mouse_pos
+    mouse: True if self.collide_point(root.mousepos[0],root.mousepos[1]) else False
+    MyLabel:
+        pos_hint: {'x':0, 'center_y':0.5}
+        size_hint: 0.5, None
+        text: "Filter color"
+
+    ColorSpinner:
+        id: fc
+        pos_hint: {'x':0.6, 'y':0}
+        size_hint: 0.4, None
+        size:0,30
+
+<BoxNewColor@FloatLayout>:
+    mync: nc
+    mousepos: Window.mouse_pos
+    mouse: True if self.collide_point(root.mousepos[0],root.mousepos[1]) else False
+    MyLabel:
+        pos_hint: {'x':0, 'center_y':0.5}
+        size_hint: 0.5, None
+        text: "New blocks"
+
+    ColorSpinner:
+        id: nc
+        pos_hint: {'x':0.6, 'y':0}
+        size_hint: 0.4, None
+        size:0,30
+
+<BoxPlain@FloatLayout>:
+    myplain: plain_check
+    mousepos: Window.mouse_pos
+    mouse: True if self.collide_point(root.mousepos[0],root.mousepos[1]) else False
+    MyLabel:
+        pos_hint: {'x':0, 'center_y':0.5}
+        size_hint: (0.5, None)
+        text: "Plain"
+
+    CheckBox:
+        pos_hint: {'right':1, 'center_y':0.5}
+        size_hint: (0.5, None)
+        id: plain_check
+        color: 0,0,0,1
+        height: '48dp'
+
+<BoxHeight@FloatLayout>:
+    myheight: height_slide
+    mousepos: Window.mouse_pos
+    mouse: True if self.collide_point(root.mousepos[0],root.mousepos[1]) else False
+    downrelease: lambda: None
+    uprelease: lambda: None
+    myTextCheck: lambda: None
+    MyLabel:
+        pos_hint: {'x':0, 'center_y':0.5}
+        size_hint: 0.5, None
+        text: "Height"  
+
+    BoxUpDown:
+        id: height_slide
+        pos_hint: {'right': 1, 'center_y':0.5}
+        size_hint: 0.5, 1 
+        min: -255
+        downrelease: root.downrelease
+        uprelease: root.uprelease
+        myTextCheck: root.myTextCheck
+
+<BoxHeightFilter>:
+    mousepos: Window.mouse_pos
+    mouse: True if self.collide_point(root.mousepos[0],root.mousepos[1]) else False
+    hfe: hfe  #Height filter end
+    hfs: hfs  #Height filter start
+    MyLabel:
+        pos_hint: {'x':0, 'center_y':0.5}
+        size_hint: 0.25, None
+        text: "Height filter"
+
+    BoxUpDown:
+        id: hfs
+        pos_hint: {'x': 0.25, 'center_y':0.5}
+        size_hint: 0.25, 1
+        uprelease: root.hfsUpRelease
+        myTextCheck: root.hfsUpRelease
+
+    MyLabel:
+        pos_hint: {'center_x':0.75, 'center_y':0.5}
+        size_hint: 0.25, None
+        text: "-"
+
+    BoxUpDown:
+        id: hfe
+        value: 255
+        pos_hint: {'right': 1, 'center_y':0.5}
+        size_hint: 0.25, 1
+        downrelease: root.hfeDownRelease
+        myTextCheck: root.hfeDownRelease

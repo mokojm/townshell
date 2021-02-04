@@ -1,0 +1,190 @@
+#:import SwapTransition kivy.uix.screenmanager.SwapTransition
+#:import Factory kivy.factory.Factory
+#:import Window kivy.core.window.Window
+#:import choice random.choice
+
+#:set Backgrounds ("Pictures\\Back1.png", "Pictures\\Back2.png", "Pictures\\Back3.png")
+
+<DateLastClip@Label>:
+    date: "23/11/2020 21:31" #temporary
+    color: 0,0,0,1
+    font_name: 'Garamond'
+    font_size: 18
+    text: self.date
+
+<LastClip@TextInput>:
+    clip: "AAAE\nTest" #temporary
+    text: self.clip
+    readonly: True
+    multiline: True
+
+<KeyboardPopup@Popup>:
+    util: app.get_running_app().util
+    title: 'Keyboards shortcuts'
+    mytext: "Coucou"
+    radius: 10
+
+    opacity: 1
+    on_open: self.mytext = self.util.get_shortcuts()
+    pos_hint: {'center_x': 0.75, 'center_y':0.6}
+    
+    size_hint: .5, .70
+    auto_dismiss: True
+    
+    title_color: 0, 0, 0, 1
+    title_font: 'Garamond'
+    title_size: 18
+    background: "Pictures\\empty.png"
+    background_color: (1, 1, 1, 0)
+    overlay_color: 0, 0, 0, 0
+    separator_color: 0, 0, 0, 1
+    canvas.before:
+
+        Color:
+            rgba: (0.798, 0.743, 0.716, 0.9)
+
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [self.radius,]
+    Label:
+        font_size: 16*min(self.height, self.width)/400
+        color: 0,0,0,1
+        font_name: 'Garamond'
+        text_size: root.width*0.90, None
+        size: self.texture_size
+        text: root.mytext
+
+<KeyboardSwitch>
+    active: True
+    background_color: 1,1,1,0
+    button_radius: 30*min(self.height, self.width)/60
+    circle_radius: 2*min(self.height, self.width)/60*20
+    circle_x: self.x + self.width/12 if self.active is False else self.right - self.circle_radius - self.width/12
+    #myh: 10 + self.circle_radius*2
+    text: ""
+    on_release: self.switch()
+
+    canvas.before:
+        
+        # Color:
+        #     rgba: 0.98, 1, 0.914, 0.8# if self.active else 1, 0.902, 0.882, 0.8
+
+        # RoundedRectangle:
+        #     pos: self.pos
+        #     size: self.size
+        #     radius: [self.button_radius,]   
+
+        Color:
+            rgba: 0,0,0,1   
+
+        Line:
+            width: 1
+            rounded_rectangle: self.x, self.y, self.width, self.height, self.button_radius
+
+        Ellipse:
+            pos: self.circle_x if self.circle_x else 0, self.y + (self.height - self.circle_radius)/2 if self.circle_x else 0 
+            size: self.circle_radius if self.circle_radius else 0, self.circle_radius if self.circle_radius else 0
+
+        # Line:
+        #     width: 1
+        #     circle:  self.circle_x, self.y+self.height/2, self.circle_radius
+
+    # MyLabel:
+    #     bold: True
+    #     text: "ON" if self.parent.active else "OFF"
+    #     pos: root.x, root.y
+
+
+
+<KeyboardShortcuts@FloatLayout>:
+    util: app.get_running_app().util
+    ShortcutLabel:
+        pos_hint: {'x': 0, 'center_y': 0.5}
+        size_hint: 0.7, None
+        #font_size: 24
+        text: "Keyboard shortcuts"
+
+    KeyboardSwitch:
+        pos_hint: {'right': 1, 'center_y':0.5}
+        size_hint: 0.3, 1
+        on_active: 
+            if self.active: root.util.activate_shortcuts()
+            else: root.util.deactivate_shortcuts()       
+
+<MenuImage@Widget>:
+    canvas.before:
+        Image:
+            source: "Pictures\\TownShell.ico"
+
+<MenuScreen>:
+
+    FloatLayout:
+        pos: 0,0
+        size: root.width, root.height
+
+        TownButton:
+            id: quit
+            normal_color: 1, 0.702, 0.682, 1
+            down_color: 1, 0.902, 0.882, 1
+            size_hint: (0.2, 0.1)
+            pos_hint: {"center_x":0.15, "center_y":0.15}
+            on_release:
+                app.stop()
+            my_text: "Quit"
+
+        TownButton:
+            size_hint: (0.2, 0.1)
+            pos_hint: {"center_x":0.15, "center_y":0.30}
+            on_release: 
+                if root.manager != None: root.manager.transition.direction = 'up'; 
+                root.manager.current = 'merge'
+            my_text: "Merge"
+
+        TownButton:
+            size_hint: (0.2, 0.1)
+            pos_hint: {"center_x":0.15, "center_y":0.45}
+            on_release: 
+                if root.manager != None: root.manager.transition.direction = 'up'; 
+                root.manager.current = 'replicate'
+            my_text: "Replicate"
+
+        TownButton:
+            size_hint: (0.2, 0.1)
+            pos_hint: {"center_x":0.15, "center_y":0.60}
+            on_release: 
+                if root.manager != None: root.manager.transition.direction = 'down'; 
+                root.manager.current = 'dig'
+            my_text: "Dig"
+
+        TownButton:
+            size_hint: (0.2, 0.1)
+            pos_hint: {"center_x":0.15, "center_y":0.75}
+            on_release: 
+                if root.manager != None: root.manager.transition.direction = 'right'; 
+                root.manager.current = 'paint'
+            my_text: "Paint"
+
+        TownButton:
+            size_hint: (0.2, 0.1)
+            pos_hint: {"center_x":0.15, "center_y":0.90}
+            on_release: 
+                if root.manager != None: root.manager.transition.direction = 'left'; 
+                root.manager.current = 'level'
+            my_text: "Level"
+
+        Image:
+            source: "Pictures\\TownShell_title.png"
+            size_hint: 0.3, 0.2
+            pos_hint: {'center_x':0.7, 'y':0.8}
+
+
+        Image:
+            source: choice(Backgrounds)
+            size_hint: (0.6, 0.6)
+            pos_hint: {'center_x':0.7, 'y':0.25}
+
+        KeyboardShortcuts:
+            size_hint: 0.25, 0.06
+            pos_hint: {'center_x':0.7, 'center_y':0.2}
+

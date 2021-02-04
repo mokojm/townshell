@@ -1,0 +1,134 @@
+#:set Demo {"height": "Pictures\\Height.png", "plain": "Pictures\\Plain.png", "maxh": "Pictures\\MaxHeight.png", "minh": "Pictures\\MinHeight.png", "cf": "Pictures\\Color_filter.png", "nblocks": "Pictures\\Color_new_blocks.png"}
+#: import Window kivy.core.window.Window
+
+<BoxMaxHeight@FloatLayout>:
+    mousepos: Window.mouse_pos
+    mouse: True if self.collide_point(root.mousepos[0],root.mousepos[1]) else False
+	max_height: max_height
+    downrelease: lambda: None
+    myTextCheck: lambda: None
+	MyLabel:
+		pos_hint: {'x':0, 'center_y':0.5}
+		size_hint: 0.5, None
+		text: "Max height"
+
+	BoxUpDown:
+        id: max_height
+        value: self.max
+        pos_hint: {'right': 1, 'center_y':0.5}
+        size_hint: 0.5, 1
+        downrelease: root.downrelease
+        myTextCheck: root.myTextCheck
+
+<BoxMinHeight@RelativeLayout>:
+    mousepos: Window.mouse_pos
+    mouse: True if self.collide_point(root.mousepos[0],root.mousepos[1]) else False
+	min_height: min_height
+    uprelease: lambda: None
+    myTextCheck: lambda: None
+	MyLabel:
+		pos_hint: {'x':0, 'center_y':0.5}
+        size_hint: 0.5, None
+		text: "Min height"
+
+	BoxUpDown:
+        id: min_height
+        min: -1
+        value: self.min
+        pos_hint: {'right': 1, 'center_y':0.5}
+        size_hint: 0.5, 1
+        uprelease: root.uprelease
+        myTextCheck: root.myTextCheck
+
+<LevelScreen>:
+    box_min: box_min
+    box_max: box_max
+    box_newc: box_newc
+    box_fc: box_fc
+    box_plain: box_plain
+    box_height: box_height
+
+    FloatLayout:
+        pos: 0,0
+        size: root.width, root.height          
+
+        BoxNewColor:
+            id: box_newc
+            pos_hint: {"x":0.05, "y":0.20}
+            size_hint: 0.2, 0.03
+
+        BoxFilterColor:
+            id: box_fc
+            pos_hint: {"x":0.05, "y":0.33}
+            size_hint: 0.2, 0.03
+
+        BoxMinHeight:
+        	id: box_min
+        	pos_hint: {"x":0.05, "y":0.45}
+        	size_hint: 0.2, 0.06
+            uprelease: root.minHeightCheck
+            myTextCheck: root.minHeightCheck
+
+        BoxMaxHeight:
+        	id: box_max
+        	pos_hint: {"x":0.05, "y":0.55}
+        	size_hint: 0.2, 0.06
+            downrelease: root.maxHeightCheck
+            myTextCheck: root.maxHeightCheck
+
+        BoxPlain:
+            id: box_plain
+        	pos_hint: {"x":0.05, "y":0.65}
+        	size_hint: 0.2, 0.03
+        
+        BoxHeight:
+            id: box_height
+        	pos_hint: {"x":0.05, "y":0.75}
+        	size_hint: 0.2, 0.06
+            uprelease: root.heightCheck
+            downrelease: root.heightCheck
+            myTextCheck: root.heightCheck
+
+
+        Image:
+            pos_hint: {"x": 0.50, "y":0.4}
+            size_hint: 0.55, 0.55
+            source: 
+                Demo["height"] if box_height.mouse else \
+                Demo["plain"] if box_plain.mouse else \
+                Demo["maxh"] if box_max.mouse else \
+                Demo["minh"] if box_min.mouse else \
+                Demo["cf"] if box_fc.mouse else \
+                Demo["nblocks"] if box_newc.mouse else \
+                Demo["height"]   
+
+        TownButton:
+            normal_color: 0.953, 0.890, 0.714, 1
+            down_color: 1, 1, 0.714, 1
+            size_hint: (0.45, 0.1)
+            pos_hint: {"center_x":0.75, "center_y":0.3}
+            on_release: root.save_to_clipboard()
+            my_text: "Save to Clipboard"
+
+        BoxUndoRedo:
+            pos_hint: {"x":0.02, "y":0.88}
+            size_hint: 0.25, 0.1
+
+        TownButton:
+            normal_color: 1, 0.702, 0.682, 1
+            down_color: 1, 0.902, 0.882, 1
+            size_hint: (0.2, 0.1)
+            pos_hint: {"center_x":0.88, "center_y":0.07}
+            on_release: 
+                if root.manager != None: root.manager.transition.direction = "right"; 
+                root.manager.current = 'menu'
+            my_text: "Back"
+
+
+
+        
+
+
+
+
+

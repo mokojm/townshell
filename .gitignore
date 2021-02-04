@@ -9,3 +9,9 @@ temp
 build
 log
 backup
+pyinstall
+pyinstall2
+pyinstall3
+setup.py
+townshell.bat
+__pycache__

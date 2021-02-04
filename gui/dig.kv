@@ -1,0 +1,81 @@
+#:set Demod {"percent": "Pictures\\Dig_percent.png", "cf": "Pictures\\Dig_cf.png", "hf": "Pictures\\Dig_hf.png"}
+#: import Window kivy.core.window.Window
+#:import Factory kivy.factory.Factory
+
+<BoxPercent@FloatLayout>
+    mousepos: Window.mouse_pos
+    mouse: True if self.collide_point(root.mousepos[0],root.mousepos[1]) else False
+    per: per
+    MyLabel:
+        pos_hint: {'x':0, 'center_y':0.5}
+        size_hint: 0.5, None
+        text: "Percents"
+
+    BoxUpDown:
+        id: per
+        value: 100
+        max: 100
+        pos_hint: {'right': 1, 'center_y':0.5}
+        size_hint: 0.5, 1
+
+<DigScreen>:
+	
+	box_per: box_per
+	box_filter: box_filter
+	box_hf: box_hf
+
+    FloatLayout:
+        pos: 0,0
+        size: root.width, root.height
+
+        BoxPercent:
+            id: box_per
+            pos_hint: {"x":0.02, "y":0.8}
+            size_hint: 0.2, 0.06
+
+        BoxColor:
+        	id: box_filter
+            values: ["", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14"]
+        	myText: 'Filter :'
+            pos_hint: {"x":0.02, "y":0.7}
+            size_hint: 0.2, 0.03
+
+        BoxHeightFilter:
+            id: box_hf
+        	pos_hint: {"x":0.02, "y":0.55}
+        	size_hint: 0.4, 0.06
+
+        TownButton:
+            normal_color: 0.953, 0.890, 0.714, 1
+            down_color: 1, 1, 0.714, 1
+            size_hint: (0.45, 0.1)
+            pos_hint: {"center_x":0.75, "center_y":0.3}
+            on_release: 
+            	root.save_to_clipboard()
+
+            my_text: "Save to Clipboard"
+
+        BoxUndoRedo:
+            pos_hint: {"x":0.02, "y":0.88}
+            size_hint: 0.25, 0.1
+
+        Image:
+            pos_hint: {"x": 0.50, "y":0.4}
+            size_hint: 0.55, 0.55
+            source: 
+                Demod["percent"] if box_per.mouse else \
+                Demod["cf"] if box_filter.mouse else \
+                Demod["hf"] if box_hf.mouse else \
+                Demod["percent"]
+
+        TownButton:
+            normal_color: 1, 0.702, 0.682, 1
+            down_color: 1, 0.902, 0.882, 1
+            size_hint: (0.2, 0.1)
+            pos_hint: {"center_x":0.88, "center_y":0.07}
+            on_release: 
+            	if root.manager != None: root.manager.transition.direction = "up"; 
+            	root.manager.current = 'menu'
+            my_text: "Back"
+
+

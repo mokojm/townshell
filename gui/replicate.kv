@@ -1,0 +1,141 @@
+#:set Demo {"height": "Pictures\\Height.png", "plain": "Pictures\\Plain.png", "maxh": "Pictures\\MaxHeight.png", "minh": "Pictures\\MinHeight.png", "cf": "Pictures\\Color_filter.png", "nblocks": "Pictures\\Color_new_blocks.png"}
+#: import Window kivy.core.window.Window
+
+ 
+
+    # MySlider:
+    #     pos_hint: {'x':0.1, 'center_y':0.5}
+    #     size_hint: 0.8, None
+    #     id: height_slide
+    #     min: -10
+    #     max: 255
+    #     step:1
+
+    # HeightSlideTextInput:
+    #     pos_hint: {'x':0.9, 'center_y':0.5}
+    #     size_hint: 0.12, None
+    #     size: 0, 30
+    #     id: height_text
+    #     text: "+"+str(round(height_slide.value)) if height_slide.value >= 0 else str(round(height_slide.value))
+    #     input_filter: None
+    #     on_text_validate:
+    #         self.validate()
+    #         height_slide.value = float(self.text) if float(height_slide.min) < float(self.text) < float(height_slide.max) else height_slide.value
+    #         self.text = "+"+str(round(height_slide.value)) if height_slide.value >= 0 else str(round(height_slide.value))
+
+<BoxCopy@FloatLayout>:
+    mousepos: Window.mouse_pos
+    mouse: True if self.collide_point(root.mousepos[0],root.mousepos[1]) else False
+    cop: cop
+    MyLabel:
+        pos_hint: {'x':0, 'center_y':0.5}
+        size_hint: 0.5, None
+        text: "Copies"
+
+    BoxUpDown:
+        id: cop
+        value: 1
+        pos_hint: {'right': 1, 'center_y':0.5}
+        size_hint: 0.5, 1
+
+    # MySlider:
+    #     pos_hint: {'x':0.1, 'center_y':0.5}
+    #     size_hint: 0.8, None
+    #     id: cop
+    #     value: self.min
+    #     min: 1
+    #     max: 255
+    #     step:1
+
+    # SlideTextInput:
+    #     pos_hint: {'x':0.9, 'center_y':0.5}
+    #     size_hint: 0.12, None
+    #     size:0,30
+    #     id: cop_text
+    #     text: str(round(cop.value))
+    #     on_text_validate: 
+    #         cop.value = float(self.text) if float(cop.min) < float(self.text) < float(cop.max) else cop.value
+    #         self.text = str(round(cop.value))
+
+
+<ReplicateScreen>:
+    box_cop: box_cop
+    box_newc: box_newc
+    box_fc: box_fc
+    box_plain: box_plain
+    box_height: box_height
+
+    FloatLayout:
+        pos: 0,0
+        size: root.width, root.height          
+
+        BoxNewColor:
+            id: box_newc
+            values: ["", "R", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14"]
+            pos_hint: {"x":0.05, "y":0.30}
+            size_hint: 0.2, 0.03
+
+        BoxFilterColor:
+            id: box_fc
+            values: ["", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14"]
+            pos_hint: {"x":0.05, "y":0.43}
+            size_hint: 0.2, 0.03
+
+        BoxCopy:
+            id: box_cop
+            pos_hint: {"x":0.05, "y":0.55}
+            size_hint: 0.2, 0.06
+
+        BoxPlain:
+            id: box_plain
+            pos_hint: {"x":0.05, "y":0.65}
+            size_hint: 0.2, 0.03
+        
+        BoxHeight:
+            id: box_height
+            pos_hint: {"x":0.05, "y":0.75}
+            size_hint: 0.2, 0.06
+
+
+        Image:
+            pos_hint: {"x": 0.50, "y":0.4}
+            size_hint: 0.55, 0.55
+            source: "Pictures\\Replicate_default.png"
+                # Demo["height"] if box_height.mouse else \
+                # Demo["plain"] if box_plain.mouse else \
+                # Demo["maxh"] if box_max.mouse else \
+                # Demo["minh"] if box_min.mouse else \
+                # Demo["cf"] if box_fc.mouse else \
+                # Demo["nblocks"] if box_newc.mouse else \
+                # Demo["height"]   
+
+        TownButton:
+            normal_color: 0.953, 0.890, 0.714, 1
+            down_color: 1, 1, 0.714, 1
+            size_hint: (0.45, 0.1)
+            pos_hint: {"center_x":0.75, "center_y":0.3}
+            on_release: root.save_to_clipboard()
+            my_text: "Save to Clipboard"
+
+        BoxUndoRedo:
+            pos_hint: {"x":0.02, "y":0.88}
+            size_hint: 0.25, 0.1
+
+        TownButton:
+            normal_color: 1, 0.702, 0.682, 1
+            down_color: 1, 0.902, 0.882, 1
+            size_hint: (0.2, 0.1)
+            pos_hint: {"center_x":0.88, "center_y":0.07}
+            on_release: 
+                if root.manager != None: root.manager.transition.direction = "down"; 
+                root.manager.current = 'menu'
+            my_text: "Back"
+
+
+
+        
+
+
+
+
+

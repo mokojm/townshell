@@ -1,0 +1,35 @@
+#here the screens will be created
+
+MainManager:
+	canvas.before:
+        Color:
+            rgba: 0.894, 0.882, 0.85, 1
+        Rectangle:
+            pos: root.pos
+            size: root.size
+            #source: "Pictures\\Background.png"
+	ScreenManager:
+	    MenuScreen:
+	    LevelScreen:
+	    PaintScreen:
+        DigScreen:
+        ReplicateScreen:
+        MergeScreen:
+
+<MenuScreen>:
+    name: 'menu'
+
+<LevelScreen>:
+    name: 'level'
+
+<PaintScreen>:
+    name: 'paint'
+
+<MergeScreen>:
+    name: 'merge'
+
+<ReplicateScreen>:
+    name: 'replicate'
+
+<DigScreen>:
+    name: 'dig'

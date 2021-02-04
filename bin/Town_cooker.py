@@ -1,7 +1,7 @@
 import xml.etree.ElementTree as ET
 from logging import getLogger
-from math import atan2, degrees, dist
-from random import choice
+from math import atan2, degrees
+from random import choice, random
 from re import DOTALL, search
 
 # Logging options
@@ -149,17 +149,23 @@ def save(dico_corvox, file_path, new_file=None):
     return new_save
 
 
-# Fonction complétant superposant deux dictionnaires corners voxels
-def mix(dico_one, dico_two):
+# Merge together several dictionnaries corners voxels
+def merge(*args):
 
-    # On parcourt le second à la recherche d'éléments présents dans le premier
-    for key, values in dico_two.items():
-        if key in dico_one:
-            # La valeur du nouveau dico écrase la précédente
-            dico_one[key] = values
+    dictf = {}
+    for dicti in args:
+
+        for key, count_and_voxels in dicti.items():
+
+            if key in dictf:
+                dictf[key]["voxels"].update(count_and_voxels["voxels"])
+                dictf[key]["count"] = len(dictf[key]["voxels"])
+            else:
+                dictf[key] = count_and_voxels.copy()
 
     # Return
-    return dico_one
+    root.debug(f"Dictf:{dictf}")
+    return dictf
 
 
 # Modify the level of a structure or a part of the structure based on criterias (color, coordonates). Height of each voxel is modified and new voxels may be added. Therefore the count of corners will be affected. The coordonates of corners are not affected. Return a new dictionary
@@ -306,10 +312,92 @@ def level(
     return dico_corvox
 
 
+# Take off some blocks according to some criterias, by default it will clean everything
+# dico_corvox: dictionary containing the original structure
+# color_filter: only voxels with the selected colors will be taken off
+# percent: percentage of voxels that will be taken off
+# height: only the voxels with the specified height will be affected, tuple accepted
+def dig(dico_corvox, color_filter=None, percent=1, height=None):
+
+    # A copy of dico_corvox is browsed
+    # Warning! count_and_voxels even it's a copy will point the actual item of dico_corvox
+    dico_corvox_copy = dico_corvox.copy()
+    for (x, y), count_and_voxels in dico_corvox_copy.items():
+
+        cur_voxels = count_and_voxels["voxels"]
+
+        # Browse voxels :
+        # 1) Each criteria is checked and a boolean is set True. All boolean need to be true for the color to be applied
+        # 2) The color is determined
+        # 3) The color is applied
+        new_voxels = {}
+        for h, t in cur_voxels.items():
+
+            # Intialize of validation criterias
+            color_filter_OK = False
+            height_OK = False
+            percent_OK = False
+
+            # Dealing with color_filter
+            if color_filter is None:
+                color_filter_OK = True
+
+            elif isinstance(color_filter, tuple) and t in color_filter:
+                color_filter_OK = True
+
+            elif color_filter in ALLCOLORS and t == color_filter:
+                color_filter_OK = True
+
+            # Dealing with height
+            if height is None:
+                height_OK = True
+
+            else:
+
+                # Height is just an int
+                if isinstance(height, int) and h == height:
+                    height_OK = True
+
+                # Height is a tuple
+                elif (
+                    isinstance(height, tuple)
+                    and isinstance(height[0], int)
+                    and h in height
+                ):
+                    height_OK = True
+
+                # Height is a tuple of tuple
+                elif (
+                    isinstance(height, tuple)
+                    and isinstance(height[0], tuple)
+                    and isinstance(height[0][0], int)
+                ):
+
+                    # Analysis height against intervals
+                    if any(mini <= h <= maxi for mini, maxi in height):
+                        height_OK = True
+
+            # Percent
+            if percent == 1 or random() < percent:
+                percent_OK = True
+
+            # Conclusion when one of the condition is not fulfilled, color stay the same
+            if color_filter_OK and height_OK and percent_OK:
+                continue
+            else:
+                new_voxels[h] = t
+
+        # Update of dico_corvox
+        dico_corvox[(x, y)]["voxels"] = new_voxels
+
+    # Return
+    return dico_corvox
+
+
 # Paint the spoted voxels (no voxels added). Lots of options to come in the future
 # dico_corvox : dictionnaire des éléments présents
 # color: color between 0 and 14, can be 'random', can be tuple with several color (ex: (1,2,3)), to have the random colors only among the chosen ones.
-# color_filter: None by default, can be between 0 and 14, if not None every voxel having this color will be affected but not others
+# color_filter: None by default, can be between 0 and 14, if not None every voxel having this color will be affected but not others, can be a tuple now
 # height: if None or 0 and column is None and coord is () too, all the voxels are impacted. can be tuple with several heights (ex: (1,2,3)), can be tuple of tuple (ex : ((1,3),(5,7)) meaning put the color from height 1 to 3 and from 5 to 7)
 # column: allow accurate choice of the corners impacted depending on the height (ex: '=5' mean that only corners with maximum height = 5 will be impacted), '<', '>', '!=' are accepted, '&' and '||' too, so the following command should be possible (=1||=2)||(>5&<15&!=10) (gonna be such a hell to implement, for now I'll sleep on it)
 # coord: if you're aware of the format .scape of Townscaper save files, (x,y) of the file you need to colorize can be indicated, None by default.
@@ -353,6 +441,9 @@ def paint(
 
             # Dealing with color_filter
             if color_filter is None:
+                color_filter_OK = True
+
+            elif isinstance(color_filter, tuple) and t in color_filter:
                 color_filter_OK = True
 
             elif color_filter in ALLCOLORS and t == color_filter:
