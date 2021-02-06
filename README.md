@@ -63,7 +63,6 @@ For advanced users familiar with Python and Kivy, see [Advanced installation](#a
 
 ![TownShell_startup](/ReadMePictures/startup.gif)
 
-(to be completed)
 
 ## Keyboard shortcuts
 Keyboard shortcuts are active by default once TownShell is started. It works only when Townscaper is the foreground window.
@@ -130,24 +129,24 @@ Note that your original file is not modified.
 
 ## Replicate
 
-![Replicate_example](/ReadMePictures/ReplicateScreen.png)
+![Replicate_example](/ReadMePictures/Replicate.gif)
 
 ## Merge
 
-![Merge_example](/ReadMePictures/MergeScreen.png)
+![Merge_example](/ReadMePictures/Merge.gif)
 
 # Details
 
 ## Advanced installation
-TownShell is written in Python. If you do not have Python installed on your computer, you can download it and install it from [here](https://www.python.org) 
+TownShell is written in Python qnd Kivy language. 
+If you do not have Python installed on your computer, you can download it and install it from [here](https://www.python.org) 
+If you do not have Kivy, you can download it and install it from [here](https://kivy.org/doc/stable/gettingstarted/installation.html)
 
-Once Python is installed on your computer, the following library are necessary : keyboard, mouse, and pyperclip. You can install them using 'pip' from windows command line (cmd.exe) :
+The following libraries are necessary too : keyboard, mouse, and pyperclip. You can install them using 'pip' from windows command line (cmd.exe) :
 
 ```pip install keyboard mouse pyperclip```
 
-(to be completed)
-
-Then download the master branch then run "main.py" to start using TownShell.
+Then download the master branch on Git then run "main.py" to start using TownShell.
 
 ## Shortcuts configuration
 At any time, you can see the active shortcuts on Main screen. If you're not satisfied with the shortcuts provided by default, you can modify them by opening 'townshell.cfg' file. 
@@ -184,7 +183,16 @@ Kivy log files are also stored in 'log' repository
 
 # Future releases
 
-(to be completed)
+Here are a few stuffs I'd like to add, implementation is not guaranteed :
+- "Reset" button on each screen
+- "Write" screen to write text in Townscaper
+- "Draw" screen to draw stuff in Townscaper
+- "Generate" screen to automate city generation given a map
+
+- Automatic click on "Load on Clipboard" in Townscaper after clicking on "Save to Clipboard" in TownShell
+- Add "Ground color" to be filtered in "Level", "Dig" and "Replicate" screen
+- Multiple color filter in "Level" and "Replicate"
+- Multiple height filters in "Paint" + add height filter in other screens
 
 ## Bugs
 
