@@ -20,6 +20,8 @@ except ModuleNotFoundError:
     from bin.Town_waiter import *
 
 # Logging objects
+if exists("log") is False:
+    mkdir("log")
 # Main logger
 handler = logging.FileHandler(environ.get("LOGFILE", "log\\town.log"))
 formatter = logging.Formatter(
