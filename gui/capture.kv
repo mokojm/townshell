@@ -1,0 +1,234 @@
+
+<BoxFPS@FloatLayout>:
+    mousepos: Window.mouse_pos
+    mouse: True if self.collide_point(root.mousepos[0],root.mousepos[1]) else False
+    fps: fps
+    downrelease: lambda: None
+    myTextCheck: lambda: None
+    MyLabel:
+        pos_hint: {'x':0, 'center_y':0.5}
+        size_hint: 0.6, None
+        text: "Target FPS"
+
+    BoxUpDown:
+        id: fps
+        value: 30
+        min: 1
+        max: 120
+        pos_hint: {'right': 1, 'center_y':0.5}
+        size_hint: 0.4, 1
+        downrelease: root.downrelease
+        myTextCheck: root.myTextCheck
+
+<BoxButton@FloatLayout>:
+    mousepos: Window.mouse_pos
+    mouse: True if self.collide_point(root.mousepos[0],root.mousepos[1]) else False
+    butt: butt
+    MyLabel:
+        pos_hint: {'x':0, 'center_y':0.5}
+        size_hint: 0.5, None
+        text: "Button"
+
+    TextSpinner:
+        id: butt
+        pos_hint: {'right': 1, 'center_y':0.5}
+        size_hint: 0.5, 1
+        text_autoupdate: True
+        values: ['left', 'right']
+
+<BoxDuration@FloatLayout>:
+    mousepos: Window.mouse_pos
+    mouse: True if self.collide_point(root.mousepos[0],root.mousepos[1]) else False
+    dur: dur
+    downrelease: lambda: None
+    myTextCheck: lambda: None
+    MyLabel:
+        pos_hint: {'x':0, 'center_y':0.5}
+        size_hint: 0.6, None
+        text: "Duration"
+
+    BoxUpDown:
+        id: dur
+        value: 5
+        min: 1
+        max: 1000
+        pos_hint: {'right': 1, 'center_y':0.5}
+        size_hint: 0.4, 1
+        downrelease: root.downrelease
+        myTextCheck: root.myTextCheck
+
+<BoxDistance@FloatLayout>:
+    mousepos: Window.mouse_pos
+    mouse: True if self.collide_point(root.mousepos[0],root.mousepos[1]) else False
+    dist: dist
+    downrelease: lambda: None
+    myTextCheck: lambda: None
+    MyLabel:
+        pos_hint: {'x':0, 'center_y':0.5}
+        size_hint: 0.6, None
+        text: "Distance"
+
+    BoxUpDown:
+        id: dist
+        value: 500
+        max: 30000
+        pos_hint: {'right': 1, 'center_y':0.5}
+        size_hint: 0.4, 1
+        downrelease: root.downrelease
+        myTextCheck: root.myTextCheck
+
+<BoxAngle@FloatLayout>:
+    mousepos: Window.mouse_pos
+    mouse: True if self.collide_point(root.mousepos[0],root.mousepos[1]) else False
+    ang: ang
+    downrelease: lambda: None
+    myTextCheck: lambda: None
+    MyLabel:
+        pos_hint: {'x':0, 'center_y':0.5}
+        size_hint: 0.5, None
+        text: "Angle"
+
+    BoxUpDown:
+        id: ang
+        value: 0
+        pos_hint: {'right': 1, 'center_y':0.5}
+        size_hint: 0.5, 1
+        downrelease: root.downrelease
+        myTextCheck: root.myTextCheck
+
+<BoxRythm@FloatLayout>:
+    mousepos: Window.mouse_pos
+    mouse: True if self.collide_point(root.mousepos[0],root.mousepos[1]) else False
+    ryth: ryth
+    MyLabel:
+        pos_hint: {'x':0, 'center_y':0.5}
+        size_hint: 0.3, None
+        text: "Rythm"
+
+    TextSpinner:
+        id: ryth
+        pos_hint: {'right': 1, 'center_y':0.5}
+        size_hint: 0.7, 0.9
+        text_autoupdate: True
+        values: ['linear', 'round-trip']
+
+<BoxStartPos@FloatLayout>:
+    mousepos: Window.mouse_pos
+    mouse: True if self.collide_point(root.mousepos[0],root.mousepos[1]) else False
+    spos: spos
+    MyLabel:
+        pos_hint: {'x':0, 'center_y':0.5}
+        size_hint: 0.4, None
+        text: "Starting Pos."
+
+    TextSpinner:
+        id: spos
+        pos_hint: {'right': 1, 'center_y':0.5}
+        size_hint: 0.6, 1
+        text_autoupdate: True
+        values: ['top-left', 'top-right', 'bottom-left', 'bottom-right']
+
+<CaptureScreen>:
+    
+    box_fps: box_fps
+    box_butt: box_butt
+    box_dur: box_dur
+    box_dist: box_dist
+    box_ang: box_ang
+    box_spos: box_spos
+    box_ryt: box_ryt
+    brec: brec
+    btest: btest
+    
+    FloatLayout:
+        pos: 0,0
+        size: root.width, root.height
+
+        BoxFPS:
+            id: box_fps
+            pos_hint: {"x":0.05, "y":0.9}
+            size_hint: 0.27, 0.06
+
+        BoxButton:
+            id: box_butt
+            pos_hint: {"x":0.05, "y":0.8}
+            size_hint: 0.27, 0.06
+
+        BoxDuration:
+            id: box_dur
+            pos_hint: {"x":0.05, "y":0.7}
+            size_hint: 0.27, 0.06
+
+        BoxDistance:
+            id: box_dist
+            pos_hint: {"x":0.05, "y":0.6}
+            size_hint: 0.27, 0.06
+
+        BoxAngle:
+            id: box_ang
+            pos_hint: {"x":0.05, "y":0.5}
+            size_hint: 0.27, 0.06
+
+        BoxStartPos:
+            id: box_spos
+            pos_hint: {"x":0.05, "y":0.4}
+            size_hint: 0.27, 0.06
+
+        BoxRythm:
+            id: box_ryt
+            pos_hint: {"x":0.05, "y":0.3}
+            size_hint: 0.27, 0.06
+
+        Image:
+            pos_hint: {"x": 0.4, "y":0.4}
+            size_hint: 0.55, 0.55
+
+            anim_delay: 1/10
+            anim_loop: 4
+            allow_stretch: True
+            source: 
+                "Pictures\\C_angle.gif" if box_ang.mouse else \
+                "Pictures\\C_button.gif" if box_butt.mouse else \
+                "Pictures\\C_dist.gif" if box_dist.mouse else \
+                "Pictures\\C_rythm.gif" if box_ryt.mouse else \
+                "Pictures\\C_startpos.gif" if box_spos.mouse else \
+                "Pictures\\C_button.gif"
+            
+
+        TownButton:
+            id: btest
+            normal_color: 0.953, 0.890, 0.714, 1
+            down_color: 1, 1, 0.714, 1
+            size_hint: (0.2, 0.1)
+            pos_hint: {"center_x":0.55, "center_y":0.3}
+            on_release: root.capture(dryrun=True)
+            my_text: "Test"
+
+        TownButton:
+            id: brec
+            normal_color: 0.953, 0.890, 0.714, 1
+            down_color: 1, 1, 0.714, 1
+            size_hint: (0.2, 0.1)
+            pos_hint: {"center_x":0.8, "center_y":0.3}
+            on_release: root.capture()
+            my_text: "Record"
+
+        Label:
+            size_hint: (0.4, 0.1)
+            pos_hint: {"center_x":0.65, "center_y":0.2}
+            color: 0,0,0,1
+            text: "Press 'Backspace' to interrupt"
+            opacity: 1.0 if brec.mouse or btest.mouse else 0
+            font_name: 'Garamond'
+            font_size: min(self.height, self.width)/60*28
+
+        TownButton:
+            normal_color: 1, 0.702, 0.682, 1
+            down_color: 1, 0.902, 0.882, 1
+            size_hint: (0.2, 0.1)
+            pos_hint: {"center_x":0.88, "center_y":0.07}
+            on_release: 
+                if root.manager != None: root.manager.transition.direction = "up"; 
+                root.manager.current = 'menu'
+            my_text: "Back"
+

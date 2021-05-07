@@ -5,10 +5,9 @@
 # Town_clipper contains all functions that transform Townscaper clip to corners/voxels directories
 # Town_shortcuts handles all functions necessary for keyboard shortcuts
 # The configuration like the path where Townscaper files are saved are in townshell.cfg
-
-import logging
 import sys
 from cmd import Cmd
+from logging import getLogger
 from os import environ, mkdir
 from os.path import exists
 from time import sleep
@@ -19,26 +18,9 @@ except ModuleNotFoundError:
     sys.path.append(".")
     from bin.Town_waiter import *
 
-# Logging objects
-if exists("log") is False:
-    mkdir("log")
-# Main logger
-handler = logging.FileHandler(environ.get("LOGFILE", "log\\town.log"))
-formatter = logging.Formatter(
-    "{asctime} : [{name}:{funcName}] {levelname} :{message}", style="{"
-)
-handler.setFormatter(formatter)
-root = logging.getLogger("Town")
-root.setLevel(environ.get("LOGLEVEL", get_loglevel()))
-root.addHandler(handler)
-
-# Stream logger
-streamhandler = logging.StreamHandler(sys.stdout)
-streamformatter = logging.Formatter("{asctime} : {levelname} :{message}", style="{")
-streamhandler.setFormatter(streamformatter)
-stream = logging.getLogger("TownStream")
-stream.setLevel(environ.get("LOGLEVEL", "INFO"))
-stream.addHandler(streamhandler)
+# Initialize logging
+initLogging()
+root = getLogger("Town.table")
 
 # Main class for shell interpreter designed for Townscaper improvements
 class TownShell(Cmd):
@@ -87,7 +69,6 @@ Type help or ? to list all commands.\n"""
         return stop
 
     def default(self, line):
-        stream.warning("Unknown command")
         root.warning("Unknown command : %s", line)
         print(self.main_command)
 
@@ -100,7 +81,7 @@ Type help or ? to list all commands.\n"""
 
         # Success
         if output:
-            stream.info("Path to Townscaper saved files updated")
+            root.info("Path to Townscaper saved files updated")
 
     def do_listfiles(self, arg):
         """listfiles <option> ==> List the 5 most recent Townscaper saved files
@@ -169,7 +150,6 @@ Type help or ? to list all commands.\n"""
     def do_exit(self, arg):
         """Exit the TownShell loop"""
         root.info("TownShell execution ended")
-        stream.info("Bye (^_^)/ ")
         return True
 
     # do_EOF : same with do_exit
@@ -262,10 +242,8 @@ if __name__ == "__main__":
         townshell.cmdloop()
     except KeyboardInterrupt:
         root.warning("TownShell ended with Ctrl+C")
-        stream.warning("TownShell interrupted (-_-)")
         townshell.postloop()
     except:
         root.exception("TownShell ended with an error")
-        stream.fatal("TownShell Fatal Error system (T_T)")
         townshell.postloop()
         exit(-1)

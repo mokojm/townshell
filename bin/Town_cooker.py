@@ -6,7 +6,7 @@ from re import DOTALL, search
 
 # Logging options
 root = getLogger("Town.cooker")
-stream = getLogger("TownStream.cooker")
+# stream = getLogger("TownStream.cooker") #to be deleted
 
 # Template of corners and voxels for 'save'
 TEMP_CORNER = """
@@ -143,7 +143,6 @@ def save(dico_corvox, file_path, new_file=None):
 
     # Log
     root.info("%s created", file_path)
-    stream.info("%s created", file_path)
 
     # Return
     return new_save
@@ -196,7 +195,6 @@ def level(
     # Invalid colors lead to default color choice
     elif color > 14 or color < 0:
         root.warning("Color {} is invalid. Color 13 will be used".format(color))
-        stream.warning("Color {} is invalid. Color 13 will be used".format(color))
         color = None
 
     # Max height limit

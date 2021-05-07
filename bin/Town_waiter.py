@@ -1,4 +1,7 @@
 import json
+import logging
+import logging.handlers
+import re
 import sys
 import xml.etree.ElementTree as ET
 from ast import literal_eval as make_tuple
@@ -7,23 +10,28 @@ from datetime import datetime
 from getpass import getuser
 from glob import glob
 from logging import getLogger
-from os import mkdir, remove, scandir
-from os.path import (abspath, basename, dirname, exists, getmtime, isdir, join,
-                     splitext)
+from multiprocessing import Manager, Process, Queue
+from os import environ, mkdir, remove, scandir
+from os.path import abspath, basename, dirname, exists, getmtime, isdir, join, splitext
+from queue import Empty
 from random import choice
 from shutil import copy2, get_terminal_size, move
 from threading import Event, Thread
-from time import sleep
+from time import sleep, time
 
 import pyperclip
+from bin.Town_capture import *
 from bin.Town_clipper import *
 from bin.Town_cooker import *
-from bin.Town_shortcuts import shortcut
-from keyboard import add_hotkey
+from bin.Town_logger import *
+from bin.Town_shortcuts import getTownscaperPid, setForeground, shortcut
+from bin.Town_tools import *
+from keyboard import add_hotkey, is_pressed
 
 # Logging options
-root = getLogger("Town.waiter")
-stream = getLogger("TownStream.waiter")
+global root  # Will be initialized par initLogging
+# root = getLogger("Town.waiter")
+# stream = getLogger("TownStream.waiter") #to be deleted
 
 # Title
 TITLE = r"""
@@ -53,31 +61,6 @@ ALLCOLORS = {
     14: "white",
 }
 
-# To handle .exe treatment
-BUNDLE_DIR = getattr(sys, "_MEIPASS", abspath(dirname(__file__)))
-
-
-def exePath(mypath):
-    if exists(mypath):
-        return mypath
-    elif exists(abspath(join(BUNDLE_DIR, mypath))):
-        return abspath(join(BUNDLE_DIR, mypath))
-    else:
-        return mypath
-
-
-# The configuration file
-TOWNSHELL_PATH = "townshell.cfg"
-
-# Directory of backup
-BACKUPTOWN = "backup\\" + datetime.now().strftime("%Y%m%d%H%M%S")
-
-# Directory for temporary storage
-TEMP = "temp"
-
-# Timestamp format
-TIMESTAMP_FORMAT = "%Y/%m/%d %H:%M:%S"
-
 # Boolean to know whether Keyboard shortcuts are active or not
 global active_shortcuts
 active_shortcuts = False
@@ -100,171 +83,48 @@ def print_colors():
         print("{} ==> {}".format(digit, color))
 
 
-# Fetch the log level from 'townshell.cfg'
-def get_loglevel():
+# Initialize logging
+# Since there are multiple processes started by Townshell, a QueueHandler is used to gather log messages and a listener will write all informations in that queue to a FileHandler
+def initLogging():
 
-    # Checks that townshell.cfg exists
-    if exists(TOWNSHELL_PATH) is False:
-        myTownshell = copyc(exePath(r"tmp_townshell.cfg"), TOWNSHELL_PATH)
-        if myTownshell is None:
-            return "INFO"
+    # Logger in this module
+    global root
+    global queue
+    global listener
 
-    loglevel = read_cfg("loglevel")
-    if loglevel not in ("INFO", "WARNING", "DEBUG", "ERROR"):
-        print("Invalid log level found in 'townshell.cfg'. INFO will be used")
+    # Logging objects
+    if exists("log") is False:
+        mkdir("log")
 
-        return "INFO"
-    else:
-        return loglevel
+    # Archiving of the previous log
+    if exists("log\\town.log"):
+        with open("log\\town.log", encoding="utf-8") as logfile:
+            with open("log\\town_old.log", "a", encoding="utf-8") as old_logfile:
+                old_logfile.write(logfile.read())
 
+    with open("log\\town.log", "w") as logfile:
+        logfile.write("")
 
-# Copy a corvox dictionnary so that it's fully independent from the original one
-def dictCopy(corvox):
-    return {key: dictvalues.copy() for key, dictvalues in corvox.items()}
+    # Fetch log level
+    loglevel = get_loglevel()
 
+    # Start the listener
+    queue = Queue(-1)
+    listener = Process(target=listenerProcess, args=(queue, listenerConfigurer))
+    listener.start()
 
-# Customized copy2 to handle logging constraints
-# rename: If True the copy will be renamed in destination if any file with the same name is found
-# erase: If True and the file exists in the destination it's erased by the new file
-# Note that rename has higher priority than erase so rename=True and erase=True is useless
-def copyc(src, dst, rename=False, erase=False):
-
-    # Conversion for comfort
-    if isdir(dst):
-        dst = join(dst, basename(src))
-
-    # Case the file exists already in destination and rename = True
-    if exists(dst) and rename:
-        root.warning("%s already exists in %s and will be renamed", src, dst)
-
-        # The renaming is done by adding the current timestamp to basename of the file
-        suffix = datetime.now().strftime("%Y%m%d%H%M%S")
-        base_src, ext = splitext(basename(src))
-        dst = join(dirname(dst), base_src + suffix + ext)
-
-    # Case the file exists already in destination and erase = True
-    elif exists(dst) and erase:
-        root.warning("%s already exists in %s and will be updated", src, dst)
-
-        # The previous file is stored in TEMP
-        try:
-            temp = move(dst, TEMP)
-        except:
-            root.exception("Backup of %s failed, %s will not be copied", dst, src)
-
-            return
-
-    # Case the file exists already in destination and rename = erase = False
-    elif exists(dst):
-        root.error("%s already exists in %s, no file copied", src, dst)
-
-        return
-
-    # Copy
-    try:
-        copy2(src, dst)
-        root.debug("Successful copy from %s to %s", src, dst)
-
-    except PermissionError:
-        root.exception("Copy of %s in %s not allowed", src, dst)
-
-        if erase:
-            move(temp, dst)
-
-    except:
-        root.exception("Error during copy of %s in %s", src, dst)
-
-        if erase:
-            move(temp, dst)
-
-    # When everything is fine
-    else:
-        # Erase = True
-        if erase:
-            remove(temp)
-            root.debug("Sucessful cleaning of %s", temp)
-
-        # Return
-        return dst
-
-    # Erase = True
-    if erase:
-        move(temp, dst)
-        root.debug("Successful rollback on %s", temp)
-
-    # Return failure
-    return
+    # Initialize the worker for Town_waiter, cooker, shortcuts, clipper and table
+    workerConfigurer(queue)
+    root = getLogger("Town.waiter")
 
 
-# Read TOWNSHELL_PATH and send back the dictionary associated or the value associated with the key given as input
-# key: key in townshell.cfg if exists the value is returned
-def read_cfg(key=None):
+# Stop the listener and wait for him to finish processing
+def endLogging():
 
-    # Checks that the configuration file exists
-    if exists(TOWNSHELL_PATH) is False:
-        root.error("{} does not exist.".format(TOWNSHELL_PATH))
-        return
-
-    # Reads the configuration file and store the value in a dictionary
-    try:
-        cfg = json.load(open(TOWNSHELL_PATH))
-        root.debug("Output read :\n{}".format(cfg))
-    except:
-        root.exception("Invalid format for {}".format(TOWNSHELL_PATH))
-        return
-
-    # Checks the key, if 'all' the whole dictionary is provided. If None or does not exists, the dictionary is returned
-    if key == "all":
-        return cfg
-    elif key is None or key not in cfg:
-        return
-    else:
-        return cfg[key]
-
-
-# Update townshell.cfg.
-# key: name of the field to update in config file
-# value: new value for the spotted key
-def update_cfg(key, value):
-
-    # Read of the configuration file to fetch the dictionary cfg
-    cfg = read_cfg("all")
-    if cfg is None:
-        return
-
-    # Checks the format of the value depending on the key
-    # Path of the .scape save files, the value must be an existing path
-    if key == "scapedir":
-
-        # Path with spaces, when drag and drop might have this look
-        if value.startswith('"'):
-            value = value[1:-1]
-
-        if exists(value) is False:
-            toprint = "'{}' does not exist. Directory of scape saved files not updated".format(
-                value
-            )
-            root.warning(toprint)
-
-            return
-
-        else:
-            cfg[key] = value
-            global scapedir
-            scapedir = value
-            root.debug("'{}' is a valid path".format(value))
-
-    # Update of the config file
-    try:
-        json.dump(cfg, open(TOWNSHELL_PATH, "w"), indent=1)
-    except:
-        toprint("Error on saving the updated {}".format(TOWNSHELL_PATH))
-        root.error(toprint)
-
-    # Final return
-    root.info("%s successfully updated", TOWNSHELL_PATH)
-    root.debug("Written :\n{}".format(cfg))
-    return True
+    global queue
+    global listener
+    queue.put_nowait(None)
+    listener.join()
 
 
 # Identify the directory where all maps are stored by Townscaper
@@ -550,18 +410,6 @@ def init_townshell():
     # Fetch the pid of TownShell
     mypid = windll.user32.GetForegroundWindow()
 
-    # Checks for logs
-    if exists("log") is False:
-        mkdir("log")
-
-    # Archiving of the previous log
-    with open("log\\town.log") as logfile:
-        with open("log\\town_old.log", "a") as old_logfile:
-            old_logfile.write(logfile.read())
-
-    with open("log\\town.log", "w") as logfile:
-        logfile.write("")
-
     # Start of new logging
     root.info("TownShell started")
 
@@ -615,6 +463,8 @@ def init_townshell():
 
         # Case the path is correct
         update_cfg("scapedir", scapedir)
+
+    # Initialize capture module
 
     # Look for a job to be read and executed (unsafe not checked for a while)
     job_path = read_cfg("job")
@@ -736,7 +586,11 @@ def level_town(args):
         return
 
     # Leveling of appropriate data
-    root.debug("Input right before leveling : {}".format([height, coord, max_height, min_height, plain, color, color_filter]))
+    root.debug(
+        "Input right before leveling : {}".format(
+            [height, coord, max_height, min_height, plain, color, color_filter]
+        )
+    )
     corvox = level(
         corvox, height, coord, max_height, min_height, plain, color, color_filter
     )
@@ -1135,6 +989,379 @@ def dig_town(args):
     return True
 
 
+# Write the words in Townscaper
+def write_town(args=None):
+
+    from pyfiglet import Figlet
+
+    wallpath = r"temp\TownU7m8kmT0Wu0m2b5A.scape"
+
+    # temp
+    font = Figlet(font="6x10")
+    # text = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    text = "Help\n!!!"
+    dictLetter = {}
+    LINE_LENGTH = 30
+    SPACE_LEN = 4
+    INTERLINE = 2
+    # letter = 'w'
+    root.debug(f"{font.renderText(text)}")
+    # exit(0)
+    def prepare_text(text, font, INTERLINE, SPACE_LEN, LINE_LENGTH):
+
+        # Strip unecessary spaces over and below letters
+        def finilize_line(dico, linenb, align="left"):
+            root.debug(dico)
+
+            minStart = 1000
+            minEnd = 1000
+            minCursor = LINE_LENGTH
+            maxCursor = 0
+
+            # Determine minimum empty space over and below letter for a given line
+            for line in dico.values():
+                for word in line.values():
+                    for letter in word.values():
+                        if (
+                            "line" not in letter
+                            or "empty_start" not in letter
+                            or "empty_end" not in letter
+                            or letter["line"] != linenb
+                        ):
+                            continue
+                        else:
+                            minStart = min(letter["empty_start"], minStart)
+                            minEnd = min(letter["empty_end"], minEnd)
+
+                            minCursor = min(minCursor, letter["cursor"])
+                            maxCursor = max(
+                                maxCursor, letter["cursor"] + len(letter["content"][0])
+                            )
+
+            root.debug((minStart, minEnd))
+
+            # Strip common useless spaces over and below letters for a given line
+            midCursor = round(
+                (LINE_LENGTH - (maxCursor - minCursor)) / 2
+            )  # cursor if align == 'mid'
+            rCursor = LINE_LENGTH - (
+                maxCursor - minCursor
+            )  # cursor if align == 'right'
+            for line in dico.values():
+                for word in line.values():
+                    for letter in word.values():
+                        if "line" not in letter or letter["line"] != linenb:
+                            continue
+                        else:
+                            letter["content"] = (
+                                letter["content"][minStart:-minEnd]
+                                if minEnd > 0
+                                else letter["content"][minStart:]
+                            )
+                            lenLetter = len(letter["content"][0])
+                            letter["cursor"] += (
+                                midCursor
+                                if align == "mid"
+                                else rCursor
+                                if align == "right"
+                                else 0
+                            )
+
+            root.debug("fin")
+            root.debug(
+                f"line_lengh, maxCursor, mincursor : {(LINE_LENGTH, maxCursor, minCursor)}"
+            )
+            root.debug(dico)
+
+            return minStart, minEnd
+
+        # Modify the cursor and line number for letter in dictionnary according to new initial position
+        def re_configure(dictWord, line, posi=0):
+            root.debug(dictWord)
+            pos = posi
+            for letter in dictWord.values():
+                if "line" not in letter:
+                    continue
+                else:
+                    lenLetter = len(letter["content"][0])
+                    letter.update({"line": line, "cursor": pos})
+                    pos += lenLetter + INTERLETTER
+
+            return pos
+
+        ################################
+
+        # LINE_LENGTH = 50
+        MAX_HEIGHT = 255
+        INTERLINE = 3
+        INTERWORD = 4
+        INTERLETTER = 1
+
+        wordWrap = True
+        align = "mid"  # left by default, or mid, or right
+        cursor = 0
+        height = 1
+        curLine = 1
+        heightLine = 1
+
+        myDict = {(i, line): {} for i, line in enumerate(text.splitlines())}
+        lineVsHeight = {}  # Height associated with Lines
+        lineVsHeight[curLine] = height
+
+        ## Dealing with each line
+        for c1, (i, line) in enumerate(myDict):
+
+            if c1 != 0:
+                minS, minE = finilize_line(myDict, curLine, align)
+                heightLine = heightLine - minS - minE
+                height += heightLine + INTERLINE
+                curLine += 1
+                cursor = 0
+
+            heightLine = 1
+
+            if height > MAX_HEIGHT:
+                break
+
+            myDict[(i, line)] = {(j, word): {} for j, word in enumerate(line.split())}
+
+            lineDict = myDict[(i, line)]
+
+            ## Dealing with each word
+            for c2, (j, word) in enumerate(lineDict):
+
+                wordWrapTriggered = True if cursor == 0 else False
+
+                if c2 != 0:
+                    cursor += INTERWORD
+
+                lineDict[(j, word)] = {(k, letter): {} for k, letter in enumerate(word)}
+
+                wordDict = lineDict[(j, word)]
+
+                ## Dealing with each letter
+                for c3, (k, letter) in enumerate(wordDict):
+
+                    if c3 != 0:
+                        cursor += INTERLETTER
+
+                    wordDict[(k, letter)] = {"cursor": cursor}
+
+                    # Render the letter and identify and delete unecessary spaces
+                    renderLines = font.renderText(letter).splitlines()
+
+                    # Delete empty lines
+                    spaceStart = spaceEnd = len(renderLines[0])
+                    oneCharFound = False
+                    emptyLineStart = emptyLineEnd = 0
+                    for line in renderLines.copy():
+
+                        emptyLineBool = True if line == " " * len(line) else False
+                        emptyLineStart += (
+                            1 if emptyLineBool and oneCharFound == False else 0
+                        )
+                        emptyLineEnd = (
+                            emptyLineEnd + 1 if emptyLineBool and oneCharFound else 0
+                        )
+
+                        # Looking for starting and ending spaces
+                        matchStart = re.search(r"\A(\s+)\S+", line)
+                        matchEnd = re.search(r"\S+(\s+)\Z", line)
+                        spaceStart = min(
+                            spaceStart,
+                            len(matchStart[1])
+                            if matchStart is not None
+                            else len(line)
+                            if emptyLineBool
+                            else 0,
+                        )
+                        spaceEnd = min(
+                            spaceEnd,
+                            len(matchEnd[1])
+                            if matchEnd is not None
+                            else len(line)
+                            if emptyLineBool
+                            else 0,
+                        )
+
+                        if matchStart is not None or matchEnd is not None:
+                            oneCharFound = True
+
+                    # Deleting spaces at the end and begining
+                    root.debug(f"s,e : {spaceStart, spaceEnd}")
+                    renderLines = (
+                        list(map(lambda x: x[spaceStart:-spaceEnd], renderLines))
+                        if spaceEnd != 0
+                        else list(map(lambda x: x[spaceStart:], renderLines))
+                    )
+
+                    cursor += len(renderLines[0])
+                    heightLine = max(len(renderLines), heightLine)
+
+                    # Dealing with length of line
+                    if cursor > LINE_LENGTH:
+
+                        if wordWrap and wordWrapTriggered is False:
+                            nextLineCursor = re_configure(wordDict, curLine + 1)
+                            wordWrapTriggered = True
+                        else:
+                            nextLineCursor = 0
+
+                        minS, minE = finilize_line(myDict, curLine, align)
+                        heightLine = heightLine - minS - minE
+                        lineVsHeight[curLine] = height
+                        height += heightLine + INTERLINE
+                        if height > MAX_HEIGHT:
+                            wordOK = True
+                            break
+                        else:
+                            heightLine = len(renderLines)
+                            cursor = nextLineCursor
+                            curLine += 1
+                            wordDict[(k, letter)] = {"cursor": cursor}
+                            cursor += len(renderLines[0])
+
+                    # Adding to dictionnary
+                    wordDict[(k, letter)].update(
+                        {
+                            "content": renderLines,
+                            "line": curLine,
+                            "empty_start": emptyLineStart,
+                            "empty_end": emptyLineEnd,
+                        }
+                    )
+                    lineVsHeight[curLine] = height
+                    root.debug(f"letter {letter}, {wordDict[(k, letter)]}")
+                    root.debug(f"lineVsHeight : {lineVsHeight}")
+
+        # Last operations
+        minS, minE = finilize_line(myDict, curLine, align)
+        heightLine = heightLine - minS - minE
+        lineVsHeight[curLine] = height
+        heightTot = height + heightLine
+
+        root.debug(f"myDict : {myDict}")
+        root.debug(f"lineVsHeight : {lineVsHeight}")
+        # Creation of map of characters
+        finalDict = {}
+        for (i, line), lineDict in myDict.items():
+            for (j, word), wordDict in lineDict.items():
+                for (k, letter), letterDict in wordDict.items():
+                    heightLetter = len(letterDict["content"])
+                    for m, line in enumerate(letterDict["content"]):
+                        for n, char in enumerate(line):
+                            x = letterDict["cursor"] + n
+                            y = heightTot - lineVsHeight[letterDict["line"]] - m
+                            finalDict[(letter, x, y)] = 1 if char not in (" ",) else 0
+
+        root.debug(f"finalDict : {finalDict}")
+        return finalDict
+
+    def wallwrite(
+        wallpath,
+        text,
+        color=10,
+        plain=False,
+        background=14,
+        centered=False,
+        flying=False,
+        line_length=None,
+        max_height=None,
+    ):
+
+        # Fetching wallpath
+        dico_corvox, full_content = load(wallpath)
+
+        # Maximum line length
+        max_line_length = len(dico_corvox)
+        if line_length is None or line_length > max_line_length:
+            line_length = max_line_length
+            print()
+
+        # Prepare the text
+        dictext2 = prepare_text(text, font, INTERLINE, SPACE_LEN, line_length)
+        dictext = {(x, y): value for (l, x, y), value in dictext2.items()}
+        length_text = max([x for x, y in dictext])
+        height_text = max([y for x, y in dictext])
+
+        # Determine the start of the writing
+        # Get the max length of prepared words
+        startl = 0
+        endl = startl + length_text
+        starth = 1
+        endh = starth + height_text
+
+        if centered:
+            startl = round(max_line_length / 2 - length_text / 2)
+            endl = round(max_line_length / 2 + length_text / 2)
+
+        max_height = (
+            endh + 1
+        )  # +1 is here to have at least one line over the words when plain=True
+        if flying:
+            if max_height is None or max_height < height_text:
+                max_height = height_text * 2
+
+            starth = round(max_height / 2 - height_text / 2)
+            endh = round(max_height / 2 + height_text / 2)
+
+        # Browse dico_corvox
+        # A copy of dico_corvox is iterated
+        # Warning! count_and_voxels even it's a copy will point the actual item of dico_corvox
+        dico_corvox_copy = dico_corvox.copy()
+        for l, ((x, y), count_and_voxels) in enumerate(dico_corvox_copy.items()):
+
+            cur_voxels = count_and_voxels["voxels"]
+            new_voxels = {}
+            if l < startl or l > endl:
+                pass
+
+            else:
+                for h in range(max_height):
+                    # color choice
+                    if color == "random":
+                        t = choice([co for co in ALLCOLORS if co != background])
+                    else:
+                        t = color
+
+                    if h == 0 and plain:
+                        new_voxels[h] = 15
+
+                    elif h > endh and plain is False:
+                        break
+
+                    elif h < starth and plain is False:
+                        pass
+
+                    elif (l - startl, h - starth) in dictext and dictext[
+                        (l - startl, h - starth)
+                    ]:
+                        if color == "empty":
+                            pass
+                        else:
+                            new_voxels[h] = t
+
+                    elif plain:
+                        if background == "random":
+                            new_voxels[h] = choice(
+                                [co for co in ALLCOLORS if co != color]
+                            )
+                        else:
+                            new_voxels[h] = background
+
+            # "Count" adjustment according to the amount of voxels
+            dico_corvox[(x, y)]["count"] = len(new_voxels)
+            dico_corvox[(x, y)]["voxels"] = new_voxels
+
+        # Return
+        return dico_corvox
+
+    corvox = wallwrite(wallpath, text, plain=False, color=0)
+
+    # Copy to clipboard
+    new_clip = corvoxToClip(corvox)
+
+
 # Store the clip
 def storeClip(clip):
     global clipHistory
@@ -1208,7 +1435,7 @@ def print_shortcuts():
     shortcuts = iter(shortcuts.items())
 
     # Shorcut to open TownShell
-    output += "Press '²' to open TownShell from Townscaper\n"
+    output += "Press 'tab' to open TownShell from Townscaper\n"
 
     # First shortcuts
     info_printed = False
@@ -1383,3 +1610,321 @@ def clipToCorvox(clip):
             "Invalid clipboard content. Set DEBUG on 'loglevel' in 'townshell.cfg' and try again for more information"
         )
         return
+
+
+def processCmd(myCapture, mainQueue, synchro, command, value):
+    """Function designed to handle communication between main process and capture process"""
+    root.debug(f"Input : {(command, value)}")
+    # Dealing with received command
+    if command == "FPS":
+        myCapture.target_fps = value
+    elif command == "Dirname":
+        myCapture.dirname = value
+    elif command == "Region":
+        myCapture.region = value
+    elif command == "Start Recorder":
+        myCapture.start_recorder()
+    elif command == "Capture":
+        duration = value
+
+        # We wait for showcase to release the Lock
+        synchro.wait()
+        sleep(0.04)
+
+        # Lock acquired by showcase, capture can start
+        duration = (
+            3 * duration
+        )  # Not very clean but the purpose is to have enough time for showcase to send the end signal
+        start = time()
+        count = 0
+        while "capture ongoing":
+
+            if time() - start > duration:
+                break
+
+            elif not synchro.is_set():  # Showcase will set it False when it's finished
+                break
+
+            else:
+                myCapture.shotoqueue()
+                count += 1
+
+        # FPS
+        fps = round(count / (time() - start))
+
+    elif command == "Window size":
+        mainQueue.put(("Window size", myCapture.size))
+
+    # Dealing with Capture and Force Stop
+    if command in ("Capture",):
+        myCapture.stop_recorder()
+
+        while myCapture.is_recording:  # Waiting time
+            sleep(0.1)
+        mainQueue.put(("End Record", fps))
+
+
+def ProcessForCapture(cqueue, mqueue, queue, synchro):
+    """Process handling capture instance creation and keeping alive"""
+
+    # Initialize logging worker
+    workerConfigurer(queue)
+    root = getLogger("Town.waiter")
+
+    # Main Capture Process
+    try:
+        with TownCapture() as myCapture:
+            root.debug("Towncapture module started")
+            while True:
+
+                infos = cqueue.get()
+                root.debug(f"Infos received : {infos}")
+
+                if isinstance(infos, tuple) and isinstance(infos[0], tuple):
+                    for command, value in infos:
+                        processCmd(myCapture, mqueue, synchro, command, value)
+                elif isinstance(infos, tuple):
+                    command, value = infos
+                    processCmd(myCapture, mqueue, synchro, command, value)
+                else:
+                    continue
+    except:
+        root.exception(
+            "An error occured in Capture process. Restart TownShell to try using Capture again or activate 'DEBUG' in 'townshell.cfg' to raise a ticket to the dev for investigation puposes"
+        )
+
+
+# Initialize capture object
+def initTownCapture():
+
+    # Queue objects for communication between process
+    myManager = Manager()
+    captureQueue, mainQueue = myManager.Queue(), myManager.Queue()
+    synchro = (
+        myManager.Event()
+    )  # To allow showcase and capture to start at the same time
+
+    # Initialize the Process
+    global queue  # for logging
+    captureProcess = Process(
+        target=ProcessForCapture,
+        daemon=True,
+        args=(captureQueue, mainQueue, queue, synchro),
+    )
+    captureProcess.start()
+
+    return captureProcess, captureQueue, mainQueue, synchro, myManager
+
+
+# Short function to get window size used by Townscaper
+def getTownRegion(cqueue, mqueue):
+    cqueue.put(("Window size", ""))
+
+    # Waiting for the answer
+    try:
+        answer = mqueue.get(timeout=3)
+        if isinstance(answer, tuple) and answer[0] == "Window size":
+            return answer[1]
+        else:
+            root.debug(f"Unexpected answer : {answer}")
+            return
+
+    except Empty:
+        root.debug("Nothing returned")
+        return
+
+
+# Given an Event will set it to False if RAM exceed limit % usage
+def monitorRAM(limit, event, ramIssue):
+    event.wait()  # Monitoring is waiting for showcase to start working to monitor RAM
+    while event.is_set():
+        if virtual_memory().percent > limit:
+            ramIssue.set()
+            event.clear()
+        sleep(0.5)
+
+
+# Main function for capturing pictures from Townscaper
+# def doCapture(capturePipe, dirname, fps, button, start, pixels, duration, angle, rythm, region=None, dryrun=False) #previous declaration
+def doCapture(**kwargs):
+
+    cqueue, mqueue = kwargs["cqueue"], kwargs["mqueue"]
+    dryrun = kwargs["dryrun"]
+
+    # Checking there is a Townscaper application running
+    if not getTownscaperPid():
+        return "No Townscaper application found"
+
+    # Get the window size of Townscaper
+    windowSize = getTownRegion(cqueue, mqueue)
+    root.debug(f"WindowSize : {windowSize}")
+    kwargs["region"] = kwargs.get(
+        "region", windowSize
+    )  # Region contains either a setting from the user or Townscaper window size
+    root.debug(f"kwargs : {kwargs}")
+
+    # Region cannot be None
+    if kwargs["region"] is None:
+        return "No valid region were found"
+
+    # Checks that it's showcasable
+    decision = isShowcasable(kwargs["pixels"], kwargs["duration"])
+    root.debug(f"isShowcasable: {decision}")
+    if decision is True:
+        pass
+    else:
+        return decision
+
+    # Fetch the RAM limit and starts ram monitoring
+    if dryrun is False:
+        ramIssue = Event()
+        ramLimit = read_cfg("ram_limit")
+        ramLimit = ramLimit if ramLimit else 93
+        curRAM = virtual_memory().percent
+        if curRAM > ramLimit:
+            return f"Not enough RAM, missing percents : {round(curRAM - ramLimit)} %"
+        Thread(target=monitorRAM, args=(ramLimit, kwargs["synchro"], ramIssue)).start()
+
+    # Send the parameters first
+    if dryrun is False:
+        if kwargs["region"]:
+            cqueue.put(
+                (
+                    ("FPS", kwargs["fps"]),
+                    ("Dirname", kwargs["dirname"]),
+                    ("Region", kwargs["region"]),
+                    ("Start Recorder", ""),
+                    ("Capture", kwargs["duration"]),
+                )
+            )
+        else:
+            cqueue.put(
+                (
+                    ("FPS", target_fps),
+                    ("Dirname", kwargs["dirname"]),
+                    ("Start Recorder", ""),
+                    ("Capture", kwargs["duration"]),
+                )
+            )
+
+    # set Townscaper foreground
+    setForeground()
+
+    # Starts showcase mouse if pixels != 0
+    if kwargs["pixels"] == 0:
+        kwargs["synchro"].set()
+        answer = "Let's take a break :)"
+        sleep(kwargs["duration"])
+    else:
+        answer = showcase(**kwargs)
+
+    kwargs["synchro"].clear()
+
+    # set Townshell back foreground
+    setForeground()
+
+    if dryrun is False:
+        try:
+            answer = mqueue.get(timeout=kwargs["duration"] * 10)
+            if isinstance(answer, tuple) and answer[0] == "End Record":
+                if ramIssue.is_set():
+                    return f"maximum RAM reached, FPS : {answer[1]}"
+                else:
+                    return answer[1]  # Actual FPS is returned
+
+        except Empty:
+            return "Rendering was either too long or an error occured"
+    else:
+        return answer
+
+
+# Utility class
+class Utility(object):
+    def __init__(self):
+
+        self.captureQueue = None  # To send to capture process
+        self.mainQueue = None  # To receive from capture process
+        self.synchro = None  # For capture and showcase
+        self.manager = None
+
+        self.init_core()
+        self.shortcuts = print_shortcuts()
+
+    # Shortcuts management
+    def activate_shortcuts(self):
+        out = start_shortcuts()
+        self.shortcuts = print_shortcuts()
+        return out
+
+    def deactivate_shortcuts(self):
+        out = stop_shortcuts()
+        self.shortcuts = print_shortcuts()
+        return out
+
+    def get_shortcuts(self):
+        return self.shortcuts
+
+    # Call level_town from Town_waiter
+    def level(self, settings):
+
+        return level_town(settings)
+
+    # Call merge_town from Town_waiter
+    def merge(self, settings):
+
+        return merge_town(settings)
+
+    # Call dig_town from Town_waiter
+    def dig(self, settings):
+
+        return dig_town(settings)
+
+    # Call replicate_town from Town_waiter
+    def replicate(self, settings):
+
+        return replicate_town(settings)
+
+    # Call paint_town from Town_waiter
+    def paint(self, settings):
+
+        return paint_town(settings)
+
+    # Call isClip fron Town_waiter
+    def isclip(self, clip):
+        return isClip(clip)
+
+    # Initiate TownShell core
+    def init_core(self):
+
+        # Part working with clip (level, paint, ...)
+        init_townshell()
+        # Capture part
+        (
+            _,
+            self.captureQueue,
+            self.mainQueue,
+            self.synchro,
+            self.manager,
+        ) = initTownCapture()
+
+    # Terminate TownShell core
+    def end_core(self, issue=False):
+
+        # (temporary) stop logging
+        endLogging()
+
+    # Capture
+    def capture(self, **kwargs):
+        return doCapture(**kwargs)
+
+    # Undo
+    def undo(self):
+        return undoClip()
+
+    # Redo
+    def redo(self):
+        return redoClip()
+
+    # Write
+    def write(self, settings):
+        return write_town()

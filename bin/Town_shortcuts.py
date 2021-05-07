@@ -1,3 +1,4 @@
+import ctypes
 from ctypes import create_unicode_buffer, windll, wintypes
 from logging import getLogger
 from platform import system
@@ -7,6 +8,7 @@ from keyboard import add_hotkey
 from keyboard import is_pressed as is_clipped
 from keyboard import on_release, on_release_key, send, unhook_all
 from mouse import click, is_pressed
+from mss.factory import mss
 
 # Logging
 root = getLogger("Town.shortcuts")
@@ -29,30 +31,75 @@ COLORS = {
     25: 14,
 }
 
+# Ctypes
+user32 = windll.user32
+
 # Return the active window title (Work only on Windows system)
 def getForegroundWindowTitle():
-    hWnd = windll.user32.GetForegroundWindow()
-    length = windll.user32.GetWindowTextLengthW(hWnd)
+    hWnd = user32.GetForegroundWindow()
+    length = user32.GetWindowTextLengthW(hWnd)
     buf = create_unicode_buffer(length + 1)
-    windll.user32.GetWindowTextW(hWnd, buf, length + 1)
+    user32.GetWindowTextW(hWnd, buf, length + 1)
 
     return buf.value
 
 
-# Set TownShell ForeGround when Townscaper is active
+# Return the pid or None for a given Text if it's the title of the Window
+def getTownscaperPid():
+
+    global townscaperPid
+    townscaperPid = None
+
+    def townPicker(hWnd, lParam):
+        global townscaperPid
+
+        length = user32.GetWindowTextLengthW(hWnd)
+        buf = create_unicode_buffer(length + 1)
+        user32.GetWindowTextW(hWnd, buf, length + 1)
+        if buf.value == "Townscaper":
+            townscaperPid = hWnd
+            root.debug("Town found")
+            return False
+        else:
+            return True
+
+    # Main part
+    EnumWindowsProc = ctypes.WINFUNCTYPE(
+        ctypes.c_bool, ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int)
+    )
+    user32.EnumWindows(EnumWindowsProc(townPicker), 0)
+    root.debug(f"townscaperPid : {townscaperPid}")
+
+    return townscaperPid
+
+
+# Set TownShell ForeGround when Townscaper is active, return True if it worked else return None
 def setForeground(*args):
     global myPid
 
     if getForegroundWindowTitle() == "Townscaper":
-        windll.user32.ShowWindow(myPid, 1)
-        windll.user32.SetForegroundWindow(myPid)
-        sleep(0.1)
-        windll.user32.SetForegroundWindow(myPid)  # One is not enough on my PC
+        if user32.IsZoomed(myPid):
+            user32.ShowWindow(myPid, 3)
+        else:
+            user32.ShowWindow(myPid, 1)
 
-    elif townscaperPid and windll.user32.GetForegroundWindow() == myPid:
-        windll.user32.SetForegroundWindow(townscaperPid)
+        user32.SetForegroundWindow(myPid)
         sleep(0.1)
-        windll.user32.SetForegroundWindow(townscaperPid)
+        user32.SetForegroundWindow(myPid)  # One is not enough on my PC
+
+    elif user32.GetForegroundWindow() == myPid:
+        townscaperPid = getTownscaperPid()
+        if townscaperPid:
+            user32.SetForegroundWindow(townscaperPid)
+            sleep(0.1)
+            user32.SetForegroundWindow(townscaperPid)
+        else:
+            return
+    else:
+        return
+
+    # Standard output
+    return True
 
 
 # Detect whether another numpad click happenned a determined time before
@@ -102,10 +149,8 @@ def shortcut(stopnow, shortcuts, mypid):
     previous_time = 0.0
     global myPid
     myPid = mypid
-    global townscaperPid
-    townscaperPid = None
 
-    on_release_key("²", setForeground, suppress=True)
+    on_release_key("tab", setForeground, suppress=True)
     on_release(numpad_click)
 
     # Checks what's the platform
@@ -129,10 +174,6 @@ def shortcut(stopnow, shortcuts, mypid):
             if "Townscaper" != getForegroundWindowTitle():
                 sleep(0.05)
                 continue
-
-            # Save Townscaper pid
-            elif townscaperPid is None:
-                townscaperPid = windll.user32.GetForegroundWindow()
 
         # Fast chosen amount add
         if is_clipped(custom_lclick):

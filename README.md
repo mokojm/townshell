@@ -13,7 +13,7 @@ Get additional keyboard shortcuts to relax your fingers while building your town
 
 Get access to useful tools to accelerate your building process. Change the height of many blocks at a time. Change the color of your whole structure with a few words.
 
-[![Townshell_Youtube](http://img.youtube.com/vi/QA5MrFqmpVY/0.jpg)](http://www.youtube.com/watch?v=QA5MrFqmpVY)
+**Youtube :** [![Townshell_Youtube](http://img.youtube.com/vi/QA5MrFqmpVY/0.jpg)](http://www.youtube.com/watch?v=QA5MrFqmpVY)
 
 # Quickstart
 Download "TownShell.exe" [here](https://github.com/mokojm/townshell/releases/download/v1.0/TownShell.exe),

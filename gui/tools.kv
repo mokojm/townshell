@@ -124,6 +124,58 @@
             width: 1
             rounded_rectangle: self.x+2, self.y+3, self.rect_size[0], self.rect_size[1], self.button_radius
 
+<TextSpinnerOption@SpinnerOption>:
+
+    background_color: 1,1,1,0 # the last zero is the critical on, make invisible
+    button_radius: 5
+    size_hint: 1, None
+    size: 80, 30
+    text: ""
+    font_name: 'Garamond'
+    font_size: 24
+    color: 0,0,0,1
+    canvas.before:
+        Color:
+            rgba: 0.894, 0.882, 0.85, 1  #Color of the background
+
+        RoundedRectangle:
+            pos: self.pos
+            size: self.width, self.height - 2
+            radius: [self.button_radius,]
+
+        Color:
+            rgba: 0,0,0,1
+        Line:
+            width: 1
+            rounded_rectangle: self.x, self.y, self.width, self.height, self.button_radius
+
+<TextSpinner@Spinner>:
+    name: 'textspin'
+    option_cls: Factory.get("TextSpinnerOption")
+    button_radius: 5
+    text: ""
+    values: ['']
+    font_name: 'Garamond'
+    font_size: 24
+    background_color: 1,1,1,0
+    background_down: ''
+    color: 0,0,0,1
+    canvas.before:
+        Color:
+            rgba: 0.894, 0.882, 0.85, 1  #Color of the background
+
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [self.button_radius,]
+            
+        Color:
+            rgba: 0,0,0,1
+        Line:
+            width: 1
+            rounded_rectangle: self.x, self.y, self.width, self.height, self.button_radius
+
+
 <ColorSpinner@Spinner>:
     
     name: 'colspin'
@@ -192,7 +244,7 @@
     radius: 10
 
     opacity: 1
-    anim: Animation(opacity=0, pos_hint={'center_x':0.3, 'center_y':0.11}, duration=3, t='out_circ')
+    anim: Animation(opacity=0, pos_hint={'center_x':0.3, 'center_y':0.11}, duration=5, t='out_circ')
     on_open:
         self.focus = False
         self.anim.start(self)

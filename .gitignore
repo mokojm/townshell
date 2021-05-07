@@ -8,7 +8,11 @@ backup
 pyinstall
 pyinstall2
 pyinstall3
+pyinstall4
 __pycache__
 setup.py
 townshell.cfg
 townshell.bat
+Town_experiment.py
+*.dll
+capture_*

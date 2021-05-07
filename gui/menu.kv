@@ -128,14 +128,22 @@
             normal_color: 1, 0.702, 0.682, 1
             down_color: 1, 0.902, 0.882, 1
             size_hint: (0.2, 0.1)
-            pos_hint: {"center_x":0.15, "center_y":0.15}
+            pos_hint: {"center_x":0.15, "center_y":0.12}
             on_release:
                 app.stop()
             my_text: "Quit"
 
         TownButton:
             size_hint: (0.2, 0.1)
-            pos_hint: {"center_x":0.15, "center_y":0.30}
+            pos_hint: {"center_x":0.15, "center_y":0.25}
+            on_release: 
+                if root.manager != None: root.manager.transition.direction = 'down'; 
+                root.manager.current = 'capture'
+            my_text: "Capture"
+
+        TownButton:
+            size_hint: (0.2, 0.1)
+            pos_hint: {"center_x":0.15, "center_y":0.38}
             on_release: 
                 if root.manager != None: root.manager.transition.direction = 'up'; 
                 root.manager.current = 'merge'
@@ -143,7 +151,7 @@
 
         TownButton:
             size_hint: (0.2, 0.1)
-            pos_hint: {"center_x":0.15, "center_y":0.45}
+            pos_hint: {"center_x":0.15, "center_y":0.51}
             on_release: 
                 if root.manager != None: root.manager.transition.direction = 'up'; 
                 root.manager.current = 'replicate'
@@ -151,7 +159,7 @@
 
         TownButton:
             size_hint: (0.2, 0.1)
-            pos_hint: {"center_x":0.15, "center_y":0.60}
+            pos_hint: {"center_x":0.15, "center_y":0.64}
             on_release: 
                 if root.manager != None: root.manager.transition.direction = 'down'; 
                 root.manager.current = 'dig'
@@ -159,7 +167,7 @@
 
         TownButton:
             size_hint: (0.2, 0.1)
-            pos_hint: {"center_x":0.15, "center_y":0.75}
+            pos_hint: {"center_x":0.15, "center_y":0.77}
             on_release: 
                 if root.manager != None: root.manager.transition.direction = 'right'; 
                 root.manager.current = 'paint'
