@@ -303,7 +303,7 @@ def mydrag(
     return answer
 
 
-def isShowcasable(pixels, duration):
+def isShowcasable(pixels, duration, tomodify='duration'):
     """
     Calculate the speed, the mouse would need to reach and return True if it's considered feasible or a string precising what's wrong
     """
@@ -318,9 +318,17 @@ def isShowcasable(pixels, duration):
     ):  # pixels = 0 means the capture is made without any computed move
         return True
     elif speed < MINSPEED:
-        return "Mouse move would be too slow"
+        if tomodify == 'duration':
+            change = round(pixels / (MINSPEED+1))
+        else:
+            change = duration * MINSPEED
+        return f"Mouse move would be too slow: try {tomodify} : {change}"
     else:
-        return "Mouse move would be too fast"
+        if tomodify == 'duration':
+            change = round(pixels / (MAXSPEED-1))
+        else:
+            change = duration * MAXSPEED
+        return f"Mouse move would be too fast: try {tomodify} : {change}"
 
 
 def setShow(**kwargs):

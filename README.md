@@ -6,6 +6,9 @@
 </a>
 </p>
 
+New release (Bêta version)."Capture" feature is available. See [Capture](#capture) to have best practice tips.
+
+![TownShell_level_example](/ReadMePictures/capture.gif)
 
 Wanna save some clicks on [Townscaper](https://store.steampowered.com/app/1291340/Townscaper/), this small app will help you !
 
@@ -29,7 +32,7 @@ Press "Space" few seconds,
 Enjoy the fast click !
 
 Click "Save to Clipboard",
-Tap "²" to open "TownShell",
+Tap "tab" to open "TownShell",
 Explore the functions
 
 Back to "Townscaper" click "Load from Clipboard", 
@@ -47,6 +50,7 @@ Explore this file for more features
 	- [Dig](#dig)
 	- [Replicate](#replicate)
 	- [Merge](#merge)
+	- [Capture](#capture)
 3) [Details](#details)
 	- [Advanced installation](#advanced-installation)
 	- [Shortcuts configuration](#shortcuts-configuration)
@@ -70,7 +74,7 @@ For advanced users familiar with Python and Kivy, see [Advanced installation](#a
 Keyboard shortcuts are active by default once TownShell is started. It works only when Townscaper is the foreground window.
 Default shortcuts are as follows :
 
-'Open TownShell' ==> '²'
+'Open TownShell' ==> 'tab'
 
 'left_click' ==> 'space'
 
@@ -80,13 +84,13 @@ Default shortcuts are as follows :
 
 'redo click' ==> 'b'
 
-'custom_left_click' ==> 'maj+space'
+'custom_left_click' ==> 'shift+space'
 
-'custom_right_click' ==> 'maj+c'
+'custom_right_click' ==> 'shift+c'
 
-'custom_undo' ==> 'maj+v'
+'custom_undo' ==> 'shift+v'
 
-'custom_redo' ==> 'maj+b'
+'custom_redo' ==> 'shift+b'
 
 'undo last command' ==> 'ctrl+alt+z'
 
@@ -137,6 +141,16 @@ Note that your original file is not modified.
 
 ![Merge_example](/ReadMePictures/Merge.gif)
 
+## Capture
+
+![TownShell_level_example](/ReadMePictures/capture.gif)
+
+Best practices :
+- Since screen recording can be quite demanding on your computer ressources. Close as many application outside of Townshell and Townscaper to get the best quality.
+- After finishing the mouse move, Townshell will still need some time to finish rendering the video. It will be improved in the future but for now it will freeze Townshell window until it's done.
+- It's a Bêta version. Ressource usage is not optimized yet so Townshell while capturing for more than 20 seconds can consume a lot of RAM, particularly on high resolution. However there is a security in the program to prevent Townshell from slowing down your computer too much. See 'ram_limit' in 'townshell.cfg' to adjust it at your own risk.
+- If you're not satisfied with the fps of your recording, you can put Townscaper on window mode and decrease the size of the window. It should boost fps.
+
 # Details
 
 ## Advanced installation
@@ -146,7 +160,9 @@ If you do not have Kivy, you can download it and install it from [here](https://
 
 The following libraries are necessary too : keyboard, mouse, and pyperclip. You can install them using 'pip' from windows command line (cmd.exe) :
 
-```pip install keyboard mouse pyperclip```
+```pip install keyboard mouse pyperclip cv2 mss ffmpeg pyfiglet```
+
+(If you're wondering why there is pyfiglet in the list well it's linked with the next feature coming, hey, hey tell me if you guess what it is and thank you for reading so much of what I wrote)
 
 Then download the master branch on Git then run "main.py" to start using TownShell.
 
@@ -170,6 +186,10 @@ Townscaper provides us strings through "Save to clipboard" that will be called "
 [alvaro-cuesta](https://github.com/alvaro-cuesta/townsclipper) made a very good script that converts clips to dictionary of corners and voxels using Javascript.
 Since TownShell is written in Python, the core part of townsclipper code has been translated and adjusted.
 
+## Update v2.0-beta1
+
+Video are encoded in H264 thanks to ffmpeg and "openh264-1.8.0-win64.dll"
+
 ## Configuration file
 'townshell.cfg' is the configuration file of TownShell. 
 
@@ -188,8 +208,6 @@ Kivy log files are also stored in 'log' repository
 Here are a few stuffs I'd like to add, implementation is not guaranteed :
 - "Reset" button on each screen
 - "Write" screen to write text in Townscaper
-- "Draw" screen to draw stuff in Townscaper
-- "Generate" screen to automate city generation given a map
 
 - Automatic click on "Load on Clipboard" in Townscaper after clicking on "Save to Clipboard" in TownShell
 - Add "Ground color" to be filtered in "Level", "Dig" and "Replicate" screen

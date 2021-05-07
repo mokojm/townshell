@@ -12,7 +12,8 @@ from glob import glob
 from logging import getLogger
 from multiprocessing import Manager, Process, Queue
 from os import environ, mkdir, remove, scandir
-from os.path import abspath, basename, dirname, exists, getmtime, isdir, join, splitext
+from os.path import (abspath, basename, dirname, exists, getmtime, isdir, join,
+                     splitext)
 from queue import Empty
 from random import choice
 from shutil import copy2, get_terminal_size, move
@@ -1916,6 +1917,10 @@ class Utility(object):
     # Capture
     def capture(self, **kwargs):
         return doCapture(**kwargs)
+
+    # Showcasable
+    def isShowcasable(self, *args):
+        return isShowcasable(*args)
 
     # Undo
     def undo(self):

@@ -14,6 +14,35 @@ class CaptureScreen(Screen):
         self.util = App.get_running_app().util
         super(CaptureScreen, self).__init__(**kwargs)
 
+
+    def durShowcasable(self, *args):
+        duration = int(self.box_dur.dur.value)
+        pixels = int(self.box_dist.dist.value)
+
+        answer = self.util.isShowcasable(pixels, duration, 'duration')
+        if answer is True:
+            pass
+        else:
+            myPopUp = Factory.NotifPopUp()
+            myPopUp.title = "Capture"
+            myPopUp.level = "ERROR"
+            myPopUp.mytext = answer
+            myPopUp.open()
+
+    def disShowcasable(self, *args):
+        duration = int(self.box_dur.dur.value)
+        pixels = int(self.box_dist.dist.value)
+
+        answer = self.util.isShowcasable(pixels, duration, 'distance')
+        if answer is True:
+            pass
+        else:
+            myPopUp = Factory.NotifPopUp()
+            myPopUp.title = "Capture"
+            myPopUp.level = "ERROR"
+            myPopUp.mytext = answer
+            myPopUp.open()
+
     def capture(self, dryrun=False):
 
         target_fps = int(self.box_fps.fps.value)

@@ -40,8 +40,7 @@
     mousepos: Window.mouse_pos
     mouse: True if self.collide_point(root.mousepos[0],root.mousepos[1]) else False
     dur: dur
-    downrelease: lambda: None
-    myTextCheck: lambda: None
+    showcheck: lambda: None
     MyLabel:
         pos_hint: {'x':0, 'center_y':0.5}
         size_hint: 0.6, None
@@ -54,15 +53,15 @@
         max: 1000
         pos_hint: {'right': 1, 'center_y':0.5}
         size_hint: 0.4, 1
-        downrelease: root.downrelease
-        myTextCheck: root.myTextCheck
+        downrelease: root.showcheck
+        uprelease: root.showcheck
+        myTextCheck: root.showcheck
 
 <BoxDistance@FloatLayout>:
     mousepos: Window.mouse_pos
     mouse: True if self.collide_point(root.mousepos[0],root.mousepos[1]) else False
     dist: dist
-    downrelease: lambda: None
-    myTextCheck: lambda: None
+    showcheck: lambda: None
     MyLabel:
         pos_hint: {'x':0, 'center_y':0.5}
         size_hint: 0.6, None
@@ -74,8 +73,9 @@
         max: 30000
         pos_hint: {'right': 1, 'center_y':0.5}
         size_hint: 0.4, 1
-        downrelease: root.downrelease
-        myTextCheck: root.myTextCheck
+        downrelease: root.showcheck
+        uprelease: root.showcheck
+        myTextCheck: root.showcheck
 
 <BoxAngle@FloatLayout>:
     mousepos: Window.mouse_pos
@@ -158,11 +158,13 @@
             id: box_dur
             pos_hint: {"x":0.05, "y":0.7}
             size_hint: 0.27, 0.06
+            showcheck: root.durShowcasable
 
         BoxDistance:
             id: box_dist
             pos_hint: {"x":0.05, "y":0.6}
             size_hint: 0.27, 0.06
+            showcheck: root.disShowcasable
 
         BoxAngle:
             id: box_ang
