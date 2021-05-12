@@ -291,7 +291,7 @@ class MSS(MSSBase):
         self.hwin = self._get_pid(self.name)
         self.window = self._get_window_dim() if self.hwin else self.monitors[0]        
 
-    def _grab_impl(self, monitor):
+    def _grab_impl(self, monitor, raw=False):
         # type: (Monitor) -> ScreenShot
         """
         Retrieve all pixels from a monitor. Pixels have to be RGB.
@@ -367,4 +367,7 @@ class MSS(MSSBase):
         #print(1/(before_bytearray - start))
         #bytearrays = bytearray(self._data)
         #print(1/(time() - start))
-        return self.cls_image(bytearray(self._data), monitor)
+        if raw:
+            return bytearray(self._data)
+        else:
+            return self.cls_image(bytearray(self._data), monitor)

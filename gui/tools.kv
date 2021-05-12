@@ -3,6 +3,7 @@
 #:set Color {"R":(1,1,1,1), "0":(0.925, 0.267, 0.267,1), "1":(0.953, 0.553, 0.357,1), "2":(0.953, 0.839, 0.400, 1), "3":(0.851, 0.914, 0.463, 1), "4":(0.675, 0.765, 0.486, 1), "5":(0.518, 0.839, 0.384, 1), "6":(0.271, 0.812, 0.439, 1), "7":(0.286, 0.784, 0.647, 1), "8":(0.286, 0.729, 0.812, 1), "9":(0.325, 0.604, 1, 1), "10":(0.447, 0.475, 0.812, 1), "11":(0.725, 0.341, 0.459, 1), "12":(0.812, 0.667, 0.549, 1), "13":(0.698, 0.643, 0.616, 1), "14":(0.871,0.871,0.871,1)}
 #:import Animation kivy.animation.Animation
 #:import Clock kivy.clock.Clock
+#:import partial functools 
 
 <MyLabel>:
     text_size: self.size
@@ -244,14 +245,15 @@
     radius: 10
 
     opacity: 1
-    anim: Animation(opacity=0, pos_hint={'center_x':0.3, 'center_y':0.11}, duration=5, t='out_circ')
+    anim1: Animation(opacity=0, pos_hint={'center_x':0.23, 'center_y':0.11}, duration=2, t='out_circ')
+    anim2: Animation(opacity=0, duration=5, t='out_circ')
     on_open:
         self.focus = False
-        self.anim.start(self)
-        Clock.schedule_once(self.dismiss, 3)
+        Clock.schedule_once(lambda dt: self.anim1.start(self), 2)
+        Clock.schedule_once(self.dismiss, 4)
     
     size_hint: .4, .2
-    pos_hint: {'center_x':0.2, 'center_y':0.11}
+    pos_hint: {'center_x':0.205, 'center_y':0.11}
     auto_dismiss: True
     
     title_color: 0, 0, 0, 1

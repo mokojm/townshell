@@ -6,7 +6,7 @@
 </a>
 </p>
 
-New release (Bêta version)."Capture" feature is available. See [Capture](#capture) to have best practice tips.
+New release."Capture" feature is available. See [Capture](#capture) to have best practice tips.
 
 ![TownShell_level_example](/ReadMePictures/capture.gif)
 
@@ -148,8 +148,15 @@ Note that your original file is not modified.
 Best practices :
 - Since screen recording can be quite demanding on your computer ressources. Close as many application outside of Townshell and Townscaper to get the best quality.
 - After finishing the mouse move, Townshell will still need some time to finish rendering the video. It will be improved in the future but for now it will freeze Townshell window until it's done.
-- It's a Bêta version. Ressource usage is not optimized yet so Townshell while capturing for more than 20 seconds can consume a lot of RAM, particularly on high resolution. However there is a security in the program to prevent Townshell from slowing down your computer too much. See 'ram_limit' in 'townshell.cfg' to adjust it at your own risk.
 - If you're not satisfied with the fps of your recording, you can put Townscaper on window mode and decrease the size of the window. It should boost fps.
+- Default encoding is set to run as fast as possible but the quality of the final record can be disappointing. In 'townshell.cfg' you can change 'preset' from 'ultrafast to the following values to get improve quality : 
+ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow
+Note that it can increase CPU usage a lot and decrease FPS performances.
+You can also set 'bitrate' to improve quality, default value is 3000 (ko/s), the higher the bitrate, the bigger the output file.
+
+Tips :
+- Before Recording use "Test" tp check the move match your expectations
+- If you want to record Townscaper with no move, set Distance to 0 and press 'Record'
 
 # Details
 
@@ -158,9 +165,11 @@ TownShell is written in Python qnd Kivy language.
 If you do not have Python installed on your computer, you can download it and install it from [here](https://www.python.org) 
 If you do not have Kivy, you can download it and install it from [here](https://kivy.org/doc/stable/gettingstarted/installation.html)
 
-The following libraries are necessary too : keyboard, mouse, and pyperclip. You can install them using 'pip' from windows command line (cmd.exe) :
+Use 'pip' to install the required librairies
 
-```pip install keyboard mouse pyperclip cv2 mss ffmpeg pyfiglet```
+```pip install keyboard mouse pyperclip mss ffmpeg pyfiglet```
+
+ffmpeg needs to be installed on your computer to use 'Capture' : https://www.ffmpeg.org/download.html
 
 (If you're wondering why there is pyfiglet in the list well it's linked with the next feature coming, hey, hey tell me if you guess what it is and thank you for reading so much of what I wrote)
 
@@ -208,8 +217,8 @@ Kivy log files are also stored in 'log' repository
 Here are a few stuffs I'd like to add, implementation is not guaranteed :
 - "Reset" button on each screen
 - "Write" screen to write text in Townscaper
+- "Capture" : make it more intuitive, add "Register Move"
 
-- Automatic click on "Load on Clipboard" in Townscaper after clicking on "Save to Clipboard" in TownShell
 - Add "Ground color" to be filtered in "Level", "Dig" and "Replicate" screen
 - Multiple color filter in "Level" and "Replicate"
 - Multiple height filters in "Paint" + add height filter in other screens

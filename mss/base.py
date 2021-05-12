@@ -5,8 +5,8 @@ Source: https://github.com/BoboTiG/python-mss
 
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
-from typing import TYPE_CHECKING
 from threading import Lock
+from typing import TYPE_CHECKING
 
 from .exception import ScreenShotError
 from .screenshot import ScreenShot
@@ -44,7 +44,7 @@ class MSSBase(metaclass=ABCMeta):
         self.close()
 
     @abstractmethod
-    def _grab_impl(self, monitor):
+    def _grab_impl(self, monitor, raw=False):
         # type: (Monitor) -> ScreenShot
         """
         Retrieve all pixels from a monitor. Pixels have to be RGB.
@@ -63,7 +63,7 @@ class MSSBase(metaclass=ABCMeta):
         # type: () -> None
         """ Clean-up. """
 
-    def grab(self, monitor):
+    def grab(self, monitor, raw=False):
         # type: (Monitor) -> ScreenShot
         """
         Retrieve screen pixels for a given monitor.
@@ -85,7 +85,7 @@ class MSSBase(metaclass=ABCMeta):
             }
 
         with lock:
-            return self._grab_impl(monitor)
+            return self._grab_impl(monitor, raw)
 
     @property
     def monitors(self):

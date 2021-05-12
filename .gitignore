@@ -16,3 +16,4 @@ townshell.bat
 Town_experiment.py
 *.dll
 capture_*
+ffmpeg.exe

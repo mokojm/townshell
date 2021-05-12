@@ -3,17 +3,14 @@ Alternative screen capture device, when there is no camera of webcam connected
 to the desktop.
 """
 
-from collections import deque
 from datetime import datetime
 from logging import getLogger
 from math import cos, radians, sin
-from multiprocessing import Pipe, Process
 from os import getcwd, remove
 from os.path import join
 from threading import Thread
 from time import sleep, time
 
-import cv2
 import ffmpeg
 from keyboard import is_pressed
 from mouse import get_position
@@ -21,7 +18,6 @@ from mouse import is_pressed as is_mpressed
 from mouse import move as mouse_move
 from mouse import press, release
 from mss.factory import mss
-from numpy import array
 
 root = getLogger("Town.capture")
 
@@ -31,18 +27,12 @@ class TownCapture:
     Captures a Townscaper application
     """
 
-    def __init__(self, queue=None, target_fps=None, dirname=""):
+    def __init__(self, **kwargs):
 
         # mss instance for screenshot of Townscaper
         self.sct = mss("Townscaper")
+        self.process = None #ffmpeg process to handle encoding of the video
         self.region = None  # Used by 'record' to know the dimension of the output
-
-        # Queue for parallel processing of screenshot : screenshot alternate between queue1 and queue2 for 'PUT' then 'GET' retrieve the screenshot according to the appropriate order described by wait_queue. The goal is that one queue is used either by 'PUT' or 'GET' but never both at a time to speed up capture
-        self.queue = deque()  # First queue for fast capture
-        self.queue2 = deque()  # Second queue for fast capture
-        self.queue_putting = None
-        self.queue_getting = None
-        self.wait_queue = deque()
 
         # Time management
         self._time_start = time()
@@ -50,14 +40,16 @@ class TownCapture:
         self._time_average = 0.04
 
         # For record
-        self.dirname = dirname
-        self.target_fps = target_fps
+        self.dirname = kwargs.get('dirname', '')
+        self.target_fps = kwargs.get('target_fps')
         self.bts_vs_size = 3000 / (1920 * 1080)  # kbits/seconds/pixels
-        self.force_bitrate = None
+        self.preset = kwargs.get('preset', 'ultrafast')
+        self.force_bitrate = kwargs.get('bitrate')
+        self.loglevel = 'info' if kwargs.get('loglevel') == 'DEBUG' else 'quiet'
+        root.debug(kwargs)
 
         # Benchmark
         self.is_recording = False
-        self.force_stop = False  # Allows to stop capture at any moment
 
         # logging
         root.debug("Capture instance initialized")
@@ -105,7 +97,7 @@ class TownCapture:
 
     def _grab(self):
 
-        img = self.sct.grab(self.sct.window)
+        img = self.sct.grab(self.sct.window, raw=True)
 
         # This makes sure that the FPS are taken in comparison to screenshots rates and vary only slightly.
         self._time_taken, self._time_start = time() - self._time_start, time()
@@ -115,34 +107,42 @@ class TownCapture:
 
     def shotoqueue(self):
         """PUT process"""
-        if self.queue_getting == 2:
-            self.queue_putting = 1
-            self.queue.appendleft(self._grab())
-            self.wait_queue.appendleft(1)
-        else:
-            self.queue_putting = 2
-            self.queue2.appendleft(self._grab())
-            self.wait_queue.appendleft(2)
+        self.process.stdin.write(self._grab())
 
-        self.queue_putting = None  # No PUT on queue
         sleep(max(0, 1 / self.target_fps - self._time_taken))
 
         # print(f"\rCapture framerate: {self.fps}", end='')
 
-    def save(self, path, screenshot=None):
-        """ Store the current screenshot in the provided path. Full path, with img name is required.) """
-        image = screenshot if screenshot is not None else self._grab()
-        cv2.imwrite(filename=path, img=array(image))
-
     def start_recorder(self):
 
         self.is_recording = True
-        self.force_stop = False
-        Thread(target=self.record).start()
+        self.region = self.size if self.region is None else self.region
+        path = self.path_to_disk
+
+        # bitrate = amount_pixels * standard_bit_per_seconds / standard_amount_pixels
+        if self.force_bitrate:
+            bitrate = self.force_bitrate
+        else:
+            bitrate = round(
+                self.region["width"] * self.region["height"] * self.bts_vs_size
+            )
+            root.debug(f"Bitrate: {bitrate}")
+
+        SCREEN_SIZE = self.region["width"], self.region["height"]
+        root.debug(f"Settings : {SCREEN_SIZE} ; {self.target_fps}")
+        
+        self.process = (
+        ffmpeg
+            .input('pipe:', format='rawvideo', pix_fmt='bgra', fflags='discardcorrupt', s='{}x{}'.format(self.region["width"], self.region["height"]))
+            .output(path,  r=self.target_fps, pix_fmt='yuv420p', preset=self.preset, loglevel=self.loglevel, tune='zerolatency', **{"c:v": "libx264", "b:v": bitrate * 1000})
+            .overwrite_output()
+            .run_async(pipe_stdin=True))
 
     def stop_recorder(self):
         """None indicate to record method that it's the end of recording"""
-        self.wait_queue.appendleft(None)
+        self.process.stdin.close()
+        self.process.wait()
+        self.is_recording = False
 
     def capture(self, duration):
 
@@ -159,83 +159,10 @@ class TownCapture:
             else:
                 self.shotoqueue()
 
-    def compress(self, path):
-
-        # bitrate = amount_pixels * standard_bit_per_seconds / standard_amount_pixels
-        if self.force_bitrate:
-            bitrate = self.force_bitrate
-        else:
-            bitrate = round(
-                self.region["width"] * self.region["height"] * self.bts_vs_size
-            )
-            root.debug(f"Bitrate: {bitrate}")
-
-        # Compression
-        i = ffmpeg.input(path)
-        answer = (
-            ffmpeg.output(
-                i, self.path_to_disk, **{"c:v": "libx264", "b:v": bitrate * 1000}
-            )
-            .overwrite_output()
-            .run(quiet=True)
-        )
-        remove(path)
-        return answer
-
-    def record(self):
-        """GET using cv2 to create the video to disk"""
-
-        self.region = self.size if self.region is None else self.region
-
-        SCREEN_SIZE = self.region["width"], self.region["height"]
-        root.debug(f"Settings : {SCREEN_SIZE} ; {self.target_fps}")
-        fourcc = cv2.VideoWriter_fourcc(*"avc1")  # In Windows: DIVX
-
-        path = self.path_to_disk
-        out = cv2.VideoWriter(path, fourcc, self.target_fps, (SCREEN_SIZE))
-
-        target = 1
-        sleep(1)  # Initial sleep to let some screenshot occur
-        while "there are screenshots":
-            try:
-                queue_to_pick = (
-                    self.wait_queue.pop()
-                )  # Which queue to use to perform the GET
-            except IndexError:
-                sleep(0.002)
-                continue
-
-            # Thrown by 'stop_recording'
-            if queue_to_pick is None:
-                break
-            while "queue is occupied":
-                if queue_to_pick == self.queue_putting:
-                    sleep(0.002)
-                    continue
-                elif queue_to_pick == 1:
-                    self.queue_getting = 1
-                    img = self.queue.pop()
-                elif queue_to_pick == 2:
-                    self.queue_getting = 2
-                    img = self.queue2.pop()
-                self.queue_getting = None
-                break
-
-            out.write(cv2.cvtColor(array(img), cv2.COLOR_RGBA2RGB))
-
-        out.release()
-        cv2.destroyAllWindows()
-        # Compression
-        out, err = self.compress(path)
-        # root.debug(f"out : {out}, err : {err}")
-
-        # End of Record
-        self.is_recording = False
-
 
 # Townscaper screen data
 RIGHTSPACE = 300
-LEFTSPACE = 50
+LEFTSPACE = 70
 MIN_WIDTH = 400
 
 
@@ -277,7 +204,6 @@ def move(x, y, absolute=True, duration=0, steps_per_second=120.0, synchro=None):
 
     # Feedback
     return True
-
 
 def mydrag(
     start_x,

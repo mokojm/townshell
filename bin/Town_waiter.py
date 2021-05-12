@@ -1665,7 +1665,7 @@ def processCmd(myCapture, mainQueue, synchro, command, value):
         mainQueue.put(("End Record", fps))
 
 
-def ProcessForCapture(cqueue, mqueue, queue, synchro):
+def ProcessForCapture(cqueue, mqueue, queue, synchro, **kwargs):
     """Process handling capture instance creation and keeping alive"""
 
     # Initialize logging worker
@@ -1674,7 +1674,7 @@ def ProcessForCapture(cqueue, mqueue, queue, synchro):
 
     # Main Capture Process
     try:
-        with TownCapture() as myCapture:
+        with TownCapture(**kwargs) as myCapture:
             root.debug("Towncapture module started")
             while True:
 
@@ -1698,23 +1698,31 @@ def ProcessForCapture(cqueue, mqueue, queue, synchro):
 # Initialize capture object
 def initTownCapture():
 
-    # Queue objects for communication between process
-    myManager = Manager()
-    captureQueue, mainQueue = myManager.Queue(), myManager.Queue()
-    synchro = (
-        myManager.Event()
-    )  # To allow showcase and capture to start at the same time
-
-    # Initialize the Process
     global queue  # for logging
+    
+    myManager = Manager()
+  
+    #Fetch 'townshell.cfg' input for Capture and add Manager objects
+    initDict = {
+    'bitrate': read_cfg('bitrate'),
+    'dirname': read_cfg('dirname'),
+    'preset': read_cfg('preset'),
+    'loglevel': read_cfg('loglevel'),
+    'queue': queue,
+    'cqueue': myManager.Queue(),  # Queue objects for communication between process
+    'mqueue': myManager.Queue(),     # Queue objects for communication between process
+    'synchro': myManager.Event(),       # To allow showcase and capture to start at the same time
+    } 
+    # Initialize the Process
+    
     captureProcess = Process(
         target=ProcessForCapture,
         daemon=True,
-        args=(captureQueue, mainQueue, queue, synchro),
+        kwargs=initDict
     )
     captureProcess.start()
 
-    return captureProcess, captureQueue, mainQueue, synchro, myManager
+    return captureProcess, initDict.get('cqueue'), initDict.get('mqueue'), initDict.get('synchro'), myManager
 
 
 # Short function to get window size used by Townscaper
@@ -1826,7 +1834,7 @@ def doCapture(**kwargs):
 
     if dryrun is False:
         try:
-            answer = mqueue.get(timeout=kwargs["duration"] * 10)
+            answer = mqueue.get(timeout=kwargs["duration"] * 3)
             if isinstance(answer, tuple) and answer[0] == "End Record":
                 if ramIssue.is_set():
                     return f"maximum RAM reached, FPS : {answer[1]}"
