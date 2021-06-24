@@ -19,7 +19,7 @@ Get access to useful tools to accelerate your building process. Change the heigh
 **Youtube :** [![Townshell_Youtube](http://img.youtube.com/vi/QA5MrFqmpVY/0.jpg)](http://www.youtube.com/watch?v=QA5MrFqmpVY)
 
 # Quickstart
-Download "TownShell.exe" [here](https://github.com/mokojm/townshell/releases/download/v2.0-beta1/TownShell.exe),
+Download "TownShell.exe" [here](https://github.com/mokojm/townshell/releases/download/v2.0/TownShell.exe),
 
 Click '**TownShell.exe**'
 
@@ -194,10 +194,6 @@ Townscaper provides us strings through "Save to clipboard" that will be called "
 
 [alvaro-cuesta](https://github.com/alvaro-cuesta/townsclipper) made a very good script that converts clips to dictionary of corners and voxels using Javascript.
 Since TownShell is written in Python, the core part of townsclipper code has been translated and adjusted.
-
-## Update v2.0-beta1
-
-Video are encoded in H264 thanks to ffmpeg and "openh264-1.8.0-win64.dll"
 
 ## Configuration file
 'townshell.cfg' is the configuration file of TownShell. 
