@@ -26,7 +26,7 @@ BITS_PER_CHAR = 6
 
 def clipToBits(clip):
 
-    root.debug(f"clipToBits to do :\n{clip}")
+    #root.debug(f"clipToBits to do :\n{clip}")
     reversed_clip = list(clip)[::-1]
     bits = []
     for x in reversed_clip:
@@ -36,7 +36,7 @@ def clipToBits(clip):
             return
         bits.append("{0:b}".format(value).rjust(BITS_PER_CHAR, "0"))
 
-    root.debug(f"clipToBits done :\n{''.join(bits)}")
+    #root.debug(f"clipToBits done :\n{''.join(bits)}")
     return "".join(bits)
 
 
@@ -57,7 +57,7 @@ def bitsToClip(bits):
         if charBits != "":
             clip.append(ALPHABET[int(charBits, 2)])
 
-    root.debug(f"bitsToClip done :\n{''.join(clip[::-1])}")
+    #root.debug(f"bitsToClip done :\n{''.join(clip[::-1])}")
     return "".join(clip[::-1])
 
 
@@ -276,7 +276,7 @@ def bitsToDense(bits):
         if corner["hasGround"] or len(nonEmptyVoxels) > 0:
             dense["corners"].append(corner)
 
-    root.debug(f"bitsToDense done :\n{dense}")
+    #root.debug(f"bitsToDense done :\n{dense}")
     return dense
 
 
@@ -427,7 +427,7 @@ def denseToBits(dense, pad=True):
             outString = paddingBits + outString
 
     #
-    root.debug(f"denseToBits done :\n{outString}")
+    #root.debug(f"denseToBits done :\n{outString}")
     return outString
 
 
@@ -484,7 +484,7 @@ def denseToSparse(dense):
         if len(voxels) > 0:
             sparse.append({"x": x, "y": y, "voxels": voxels})
 
-    root.debug(f"denseToSparse done :\n{sparse}")
+    #root.debug(f"denseToSparse done :\n{sparse}")
     return sparse
 
 
@@ -588,7 +588,7 @@ def sparseToDense(sparse):
             }
         )
 
-    root.debug(f"sparseToDense done :\n{dense}")
+    #root.debug(f"sparseToDense done :\n{dense}")
     return dense
 
 

@@ -147,6 +147,9 @@ class BoxColor(FloatLayout):
                 "center_y": self.add_button.pos_hint["center_y"],
             }
 
+        #Complementary function
+        self.addCompFunc()
+
     def del_color(self):
         if self.children[0].name == "colspin":
             self.remove_widget(self.children[0])
@@ -154,6 +157,9 @@ class BoxColor(FloatLayout):
                 "x": self.add_button.pos_hint["x"] - 0.2,
                 "center_y": self.add_button.pos_hint["center_y"],
             }
+
+        #Complementary function
+        self.delCompFunc()
 
 
 class BoxUpDown(FloatLayout):

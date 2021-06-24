@@ -76,11 +76,20 @@
         #     radius: [self.button_radius,]   
 
         Color:
-            rgba: 0,0,0,1   
+            r: 0
+            g: 0
+            b: 0
+            a: 1   
 
         Line:
             width: 1
             rounded_rectangle: self.x, self.y, self.width, self.height, self.button_radius
+
+        Color:
+            r: 0
+            g: 0.2 if self.active else 0
+            b: 0
+            a: 1 
 
         Ellipse:
             pos: self.circle_x if self.circle_x else 0, self.y + (self.height - self.circle_radius)/2 if self.circle_x else 0 
@@ -118,6 +127,8 @@
             source: "Pictures\\TownShell.ico"
 
 <MenuScreen>:
+    
+    sy: 0.09 #size_hint_y
 
     FloatLayout:
         pos: 0,0
@@ -127,55 +138,63 @@
             id: quit
             normal_color: 1, 0.702, 0.682, 1
             down_color: 1, 0.902, 0.882, 1
-            size_hint: (0.2, 0.1)
-            pos_hint: {"center_x":0.15, "center_y":0.12}
+            size_hint: (0.2, root.sy)
+            pos_hint: {"center_x":0.15, "center_y":0.15}
             on_release:
                 app.stop()
             my_text: "Quit"
 
         TownButton:
-            size_hint: (0.2, 0.1)
-            pos_hint: {"center_x":0.15, "center_y":0.25}
+            size_hint: (0.2, root.sy)
+            pos_hint: {"center_x":0.15, "center_y":0.26}
+            on_release: 
+                if root.manager != None: root.manager.transition.direction = 'up'; 
+                root.manager.current = 'write'
+            my_text: "Write"
+
+        TownButton:
+            size_hint: (0.2, root.sy)
+            pos_hint: {"center_x":0.15, "center_y":0.37}
             on_release: 
                 if root.manager != None: root.manager.transition.direction = 'down'; 
                 root.manager.current = 'capture'
             my_text: "Capture"
 
         TownButton:
-            size_hint: (0.2, 0.1)
-            pos_hint: {"center_x":0.15, "center_y":0.38}
+            size_hint: (0.2, root.sy)
+            pos_hint: {"center_x":0.15, "center_y":0.48}
             on_release: 
                 if root.manager != None: root.manager.transition.direction = 'up'; 
                 root.manager.current = 'merge'
             my_text: "Merge"
 
         TownButton:
-            size_hint: (0.2, 0.1)
-            pos_hint: {"center_x":0.15, "center_y":0.51}
+            size_hint: (0.2, root.sy)
+            pos_hint: {"center_x":0.15, "center_y":0.59}
             on_release: 
                 if root.manager != None: root.manager.transition.direction = 'up'; 
                 root.manager.current = 'replicate'
             my_text: "Replicate"
 
         TownButton:
-            size_hint: (0.2, 0.1)
-            pos_hint: {"center_x":0.15, "center_y":0.64}
+            size_hint: (0.2, root.sy)
+            pos_hint: {"center_x":0.15, "center_y":0.70}
             on_release: 
                 if root.manager != None: root.manager.transition.direction = 'down'; 
                 root.manager.current = 'dig'
             my_text: "Dig"
 
         TownButton:
-            size_hint: (0.2, 0.1)
-            pos_hint: {"center_x":0.15, "center_y":0.77}
+            size_hint: (0.2, root.sy)
+            pos_hint: {"center_x":0.15, "center_y":0.81}
             on_release: 
                 if root.manager != None: root.manager.transition.direction = 'right'; 
                 root.manager.current = 'paint'
             my_text: "Paint"
 
         TownButton:
-            size_hint: (0.2, 0.1)
-            pos_hint: {"center_x":0.15, "center_y":0.90}
+            size_hint: (0.2, root.sy)
+            pos_hint: {"center_x":0.15, "center_y":0.92}
             on_release: 
                 if root.manager != None: root.manager.transition.direction = 'left'; 
                 root.manager.current = 'level'

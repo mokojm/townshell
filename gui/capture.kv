@@ -140,46 +140,49 @@
     brec: brec
     btest: btest
     
+    cx: 0.04 #pos_hint_x for widgets
+    sx: 0.29 #size_hint_x
+    
     FloatLayout:
         pos: 0,0
         size: root.width, root.height
 
         BoxFPS:
             id: box_fps
-            pos_hint: {"x":0.05, "y":0.9}
-            size_hint: 0.27, 0.06
+            pos_hint: {"x":root.cx, "y":0.9}
+            size_hint: root.sx, 0.06
 
         BoxButton:
             id: box_butt
-            pos_hint: {"x":0.05, "y":0.8}
-            size_hint: 0.27, 0.06
+            pos_hint: {"x":root.cx, "y":0.8}
+            size_hint: root.sx, 0.06
 
         BoxDuration:
             id: box_dur
-            pos_hint: {"x":0.05, "y":0.7}
-            size_hint: 0.27, 0.06
+            pos_hint: {"x":root.cx, "y":0.7}
+            size_hint: root.sx, 0.06
             showcheck: root.durShowcasable
 
         BoxDistance:
             id: box_dist
-            pos_hint: {"x":0.05, "y":0.6}
-            size_hint: 0.27, 0.06
+            pos_hint: {"x":root.cx, "y":0.6}
+            size_hint: root.sx, 0.06
             showcheck: root.disShowcasable
 
         BoxAngle:
             id: box_ang
-            pos_hint: {"x":0.05, "y":0.5}
-            size_hint: 0.27, 0.06
+            pos_hint: {"x":root.cx, "y":0.5}
+            size_hint: root.sx, 0.06
 
         BoxStartPos:
             id: box_spos
-            pos_hint: {"x":0.05, "y":0.4}
-            size_hint: 0.27, 0.06
+            pos_hint: {"x":root.cx, "y":0.4}
+            size_hint: root.sx, 0.06
 
         BoxRythm:
             id: box_ryt
-            pos_hint: {"x":0.05, "y":0.3}
-            size_hint: 0.27, 0.06
+            pos_hint: {"x":root.cx, "y":0.3}
+            size_hint: root.sx, 0.06
 
         Image:
             pos_hint: {"x": 0.4, "y":0.4}

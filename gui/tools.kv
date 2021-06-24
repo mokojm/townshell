@@ -6,12 +6,34 @@
 #:import partial functools 
 
 <MyLabel>:
-    text_size: self.size
     valign: 'middle'
+    halign: 'left'
     color: 0,0,0,1
     font_name: 'Garamond'
-    init_font_size: 18
-    font_size: min(self.height, self.width)/60*self.init_font_size
+    font_size: Window.height * 0.04
+    text_size: self.size
+
+<MyLabel2>:
+    valign: 'middle'
+    halign: 'left'
+    color: 0,0,0,1
+    font_name: 'Garamond'
+    font_size: self.height * 0.5
+    size_hint_y: 0.2
+
+    _scale: 1. if self.texture_size[0] < self.width else float(self.width) / self.texture_size[0]
+    canvas.before:
+        PushMatrix
+        Scale:
+            origin: self.center
+            x: self._scale or 1.
+            y: self._scale or 1.
+        Translate:
+            x: -self._scale * self.width / 4 if self._scale else 0
+
+    canvas.after:
+        PopMatrix
+    
 
 <MySlider@Slider>:
     cursor_image: "Pictures\\TownShell.ico"
@@ -108,7 +130,7 @@
     rect_size: 25, 25
     size_hint: None, None
     size: 30, 30
-    color: 0,0,0,1 if self.text in ("Add", "R") else 0,0,0,0
+    color: 0,0,0,1 if self.text in ("Add", "R", "E") else 0,0,0,0
     canvas.before:
         Color:
             rgba: Color.get(self.text, (0,0,0,0))
@@ -187,7 +209,7 @@
     values: ["", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14"]
     background_color: 1,1,1,0
     background_down: ''
-    color: 0,0,0,1 if self.text in ("Add", "R") else 0,0,0,0
+    color: 0,0,0,1 if self.text in ("Add", "R", "E") else 0,0,0,0
     option_cls: Factory.get("MySpinnerOption")
 
     canvas.before:
@@ -273,6 +295,7 @@
             size: self.size
             radius: [self.radius,]
     MyLabel:
+        font_size: Window.height * 0.032
         text: root.mytext
 
 <BoxUndoRedo>:
@@ -310,6 +333,8 @@
 <BoxColor>:
     add_button: add
     del_button: delb
+    addCompFunc: lambda: None #Completeray function that can be filled depending on needs in screens
+    delCompFunc: lambda: None #Completeray function that can be filled depending on needs in screens
     myText: "Color :"
     mousepos: Window.mouse_pos
     mouse: True if self.collide_point(root.mousepos[0],root.mousepos[1]) else False
@@ -372,10 +397,11 @@
     myplain: plain_check
     mousepos: Window.mouse_pos
     mouse: True if self.collide_point(root.mousepos[0],root.mousepos[1]) else False
+    myText: "Plain"
     MyLabel:
         pos_hint: {'x':0, 'center_y':0.5}
         size_hint: (0.5, None)
-        text: "Plain"
+        text: root.myText
 
     CheckBox:
         pos_hint: {'right':1, 'center_y':0.5}

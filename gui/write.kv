@@ -1,0 +1,206 @@
+
+<BoxFont@FloatLayout>:
+    mousepos: Window.mouse_pos
+    mouse: True if self.collide_point(root.mousepos[0],root.mousepos[1]) else False
+    font: font
+    MyLabel:
+        pos_hint: {'x':0, 'center_y':0.5}
+        size_hint: 0.4, 1.5
+        text: "Font"
+
+    TextSpinner:
+        id: font
+        pos_hint: {'right': 1, 'center_y':0.5}
+        size_hint: 0.6, 1
+        text_autoupdate: True
+        values: ['6x10', '3x5', 'banner', 'banner3', 'caligraphy', 'doh', 'katakana']
+
+
+<BoxPath@FloatLayout>:
+    mousepos: Window.mouse_pos
+    mouse: True if self.collide_point(root.mousepos[0],root.mousepos[1]) else False
+    path: path
+    fetch: lambda: None
+
+    MyLabel:
+        pos_hint: {'x':0, 'center_y':0.5}
+        size_hint: 0.4, 1.5
+        text: "Path"
+
+    TextSpinner:
+        id: path
+        pos_hint: {'right': 1, 'center_y':0.5}
+        size_hint: 0.6, 1
+        text_autoupdate: True
+        values: ['line1_48']
+        on_press: root.fetch()
+
+<BoxAlign@FloatLayout>:
+    mousepos: Window.mouse_pos
+    mouse: True if self.collide_point(root.mousepos[0],root.mousepos[1]) else False
+    ali: ali
+    MyLabel:
+        pos_hint: {'x':0, 'center_y':0.5}
+        size_hint: 0.45, None
+        text: "Align. Text"
+
+    TextSpinner:
+        id: ali
+        pos_hint: {'right': 1, 'center_y':0.5}
+        size_hint: 0.55, 1
+        text_autoupdate: True
+        values: ['left', 'middle', 'right']
+
+
+<BoxTextInputM@FloatLayout>:
+    mousepos: Window.mouse_pos
+    mouse: True if self.collide_point(root.mousepos[0],root.mousepos[1]) else False
+
+    myTitle: "title"
+    clip_text: clip_text
+    name: 'boxtext'
+    onText: lambda: None
+    MyLabel:
+        pos_hint: {'x':0, 'center_y':0.5}
+        size_hint: 0.3, 1.5
+        text: root.myTitle
+
+    TextInput:
+        button_radius: 5
+        color: 0,0,0,1
+        font_size: 18
+        font_name: 'Garamond'
+        multiline: True
+        pos_hint: {'right':1, 'center_y':0}
+        size_hint: 0.7, 2
+        #size:0,90
+        id: clip_text
+        text: ""
+        background_normal: ""
+        background_color: 0,0,0,0
+        cursor_color: 0,0,0,1
+        json_valid: True
+        on_text: root.onText()
+
+        canvas.before:
+
+            Color:
+                r: 0 if self.json_valid else 1
+                g: 0
+                b: 0
+                a: 1  
+
+            Line:
+                width: 1
+                rounded_rectangle: self.x, self.y, self.width, self.height, self.button_radius
+
+            Color:
+                rgba: 0,0,0,1
+
+
+<WriteScreen>:
+    box_text: box_text
+    box_path: box_path
+    box_ali: box_ali
+    box_wwrap: box_wwrap
+    box_back: box_back
+    box_plain: box_plain
+    box_color: box_color
+    box_font: box_font
+    box_adv: box_adv
+
+
+    FloatLayout:
+        pos: 0,0
+        size: root.width, root.height
+
+        BoxTextInputM:
+            id: box_adv
+            myTitle: "Advanced"
+            pos_hint: {"x":0.03, "y":0.07}
+            size_hint: 0.45, 0.06
+            onText: root.validateJson  
+
+        BoxPlain:
+            id: box_plain
+            pos_hint: {"x":0.03, "y":0.17}
+            size_hint: 0.3, 0.03  
+            myText: "Reverse"     
+
+        BoxAlign:
+            id: box_ali
+            pos_hint: {"x":0.03, "y":0.27}
+            size_hint: 0.45, 0.04
+
+        BoxPlain:
+            id: box_wwrap
+            myText: "Word wrap"
+            pos_hint: {"x":0.03, "y":0.35}
+            size_hint: 0.3, 0.03
+
+        BoxColor:
+            id: box_back
+            values: ["", "R", "E", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14"]
+            myText: 'Background'
+            pos_hint: {"x":0.03, "y":0.45}
+            size_hint: 0.3, 0.03
+
+
+        BoxColor:
+            id: box_color
+            values: ["", "R", "E", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14"]
+            myText: 'Colors'
+            pos_hint: {"x":0.03, "y":0.55}
+            size_hint: 0.3, 0.03
+        
+        BoxFont:
+            id: box_font
+            pos_hint: {"x":0.03, "y":0.65}
+            size_hint: 0.45, 0.04
+
+        BoxPath:
+            id: box_path
+            pos_hint: {"x":0.03, "y":0.75}
+            size_hint: 0.45, 0.04
+            fetch: root.fetch
+
+        BoxTextInputM:
+            id: box_text
+            myTitle: "Text"
+            pos_hint: {"x":0.03, "y":0.92}
+            size_hint: 0.45, 0.06
+
+
+        Image:
+            pos_hint: {"x": 0.53, "y":0.4}
+            size_hint: 0.45, 0.45
+            anim_delay: 1
+            anim_loop: 2
+            source: 
+                "Pictures\\Write_path.png" if box_path.mouse else \
+                "Pictures\\Write_align.gif" if box_ali.mouse else \
+                "Pictures\\Write_background.png" if box_back.mouse else \
+                "Pictures\\Write_colors.png" if box_color.mouse else \
+                "Pictures\\Write_reverse.png" if box_plain.mouse else \
+                "Pictures\\Write_font.gif" if box_font.mouse else \
+                "Pictures\\Write_wwrap.png" if box_wwrap.mouse else \
+                "Pictures\\Write_default.png" 
+
+        TownButton:
+            normal_color: 0.953, 0.890, 0.714, 1
+            down_color: 1, 1, 0.714, 1
+            size_hint: (0.4, 0.1)
+            pos_hint: {"center_x":0.78, "center_y":0.3}
+            on_release: root.save_to_clipboard()
+            my_text: "Save to Clipboard"
+
+
+        TownButton:
+            normal_color: 1, 0.702, 0.682, 1
+            down_color: 1, 0.902, 0.882, 1
+            size_hint: (0.2, 0.1)
+            pos_hint: {"center_x":0.88, "center_y":0.07}
+            on_release: 
+                if root.manager != None: root.manager.transition.direction = "down"; 
+                root.manager.current = 'menu'
+            my_text: "Back"

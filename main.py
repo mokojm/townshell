@@ -35,6 +35,7 @@ def main():
     from gui.paint import PaintScreen
     from gui.replicate import ReplicateScreen
     from gui.capture import CaptureScreen
+    from gui.write import WriteScreen
     from kivy.app import App
     from kivy.core.text import LabelBase
     from kivy.core.window import Window
@@ -99,8 +100,10 @@ def townShell(args):
     elif cmd == "merge":
         feedback = util.merge(settings)
     elif cmd == "write":
-        settings = None
-        feedback = util.write(settings)
+        settings = {'text':'Hello', 'wallpath': r"templates\line1_48.txt", "align":"middle", "background":14}
+        feedback = util.write(**settings)
+    elif cmd == "flip":
+        feedback = util.flip()
 
     if feedback is False:
         print("Error, check 'town.log'")
@@ -108,6 +111,9 @@ def townShell(args):
         print("Wrong command")
     else:
         print("Successful execution")
+
+    #End all
+    util.end_core()
 
 
 if __name__ == "__main__":

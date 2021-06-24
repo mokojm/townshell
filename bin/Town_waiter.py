@@ -989,378 +989,99 @@ def dig_town(args):
     # Success
     return True
 
+# Fetch all available template for 'Write' and return a dictionary of name vs path
+def fetch_templates():
+
+    templatePaths = {}
+    with scandir(exePath('templates')) as it:
+        for entry in it:
+            base, ext = splitext(entry.name)
+            if ext == '.txt':
+                templatePaths[base] = entry.path
+
+
+    feedback = read_cfg('write_templates')
+    if feedback == []:
+        pass
+    elif feedback and isinstance(feedback, list):
+        for entry in feedback:
+            base, ext = splitext(entry.name)
+            if ext == '.txt':
+                templatePaths[base] = entry.path
+    else:
+        root.warning(f"Wrong format : {feedback}")
+
+    return templatePaths
+
+
 
 # Write the words in Townscaper
-def write_town(args=None):
-
-    from pyfiglet import Figlet
-
-    wallpath = r"temp\TownU7m8kmT0Wu0m2b5A.scape"
-
-    # temp
-    font = Figlet(font="6x10")
-    # text = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-    text = "Help\n!!!"
-    dictLetter = {}
-    LINE_LENGTH = 30
-    SPACE_LEN = 4
-    INTERLINE = 2
-    # letter = 'w'
-    root.debug(f"{font.renderText(text)}")
-    # exit(0)
-    def prepare_text(text, font, INTERLINE, SPACE_LEN, LINE_LENGTH):
-
-        # Strip unecessary spaces over and below letters
-        def finilize_line(dico, linenb, align="left"):
-            root.debug(dico)
-
-            minStart = 1000
-            minEnd = 1000
-            minCursor = LINE_LENGTH
-            maxCursor = 0
-
-            # Determine minimum empty space over and below letter for a given line
-            for line in dico.values():
-                for word in line.values():
-                    for letter in word.values():
-                        if (
-                            "line" not in letter
-                            or "empty_start" not in letter
-                            or "empty_end" not in letter
-                            or letter["line"] != linenb
-                        ):
-                            continue
-                        else:
-                            minStart = min(letter["empty_start"], minStart)
-                            minEnd = min(letter["empty_end"], minEnd)
-
-                            minCursor = min(minCursor, letter["cursor"])
-                            maxCursor = max(
-                                maxCursor, letter["cursor"] + len(letter["content"][0])
-                            )
-
-            root.debug((minStart, minEnd))
-
-            # Strip common useless spaces over and below letters for a given line
-            midCursor = round(
-                (LINE_LENGTH - (maxCursor - minCursor)) / 2
-            )  # cursor if align == 'mid'
-            rCursor = LINE_LENGTH - (
-                maxCursor - minCursor
-            )  # cursor if align == 'right'
-            for line in dico.values():
-                for word in line.values():
-                    for letter in word.values():
-                        if "line" not in letter or letter["line"] != linenb:
-                            continue
-                        else:
-                            letter["content"] = (
-                                letter["content"][minStart:-minEnd]
-                                if minEnd > 0
-                                else letter["content"][minStart:]
-                            )
-                            lenLetter = len(letter["content"][0])
-                            letter["cursor"] += (
-                                midCursor
-                                if align == "mid"
-                                else rCursor
-                                if align == "right"
-                                else 0
-                            )
-
-            root.debug("fin")
-            root.debug(
-                f"line_lengh, maxCursor, mincursor : {(LINE_LENGTH, maxCursor, minCursor)}"
-            )
-            root.debug(dico)
-
-            return minStart, minEnd
-
-        # Modify the cursor and line number for letter in dictionnary according to new initial position
-        def re_configure(dictWord, line, posi=0):
-            root.debug(dictWord)
-            pos = posi
-            for letter in dictWord.values():
-                if "line" not in letter:
-                    continue
-                else:
-                    lenLetter = len(letter["content"][0])
-                    letter.update({"line": line, "cursor": pos})
-                    pos += lenLetter + INTERLETTER
-
-            return pos
-
-        ################################
-
-        # LINE_LENGTH = 50
-        MAX_HEIGHT = 255
-        INTERLINE = 3
-        INTERWORD = 4
-        INTERLETTER = 1
-
-        wordWrap = True
-        align = "mid"  # left by default, or mid, or right
-        cursor = 0
-        height = 1
-        curLine = 1
-        heightLine = 1
-
-        myDict = {(i, line): {} for i, line in enumerate(text.splitlines())}
-        lineVsHeight = {}  # Height associated with Lines
-        lineVsHeight[curLine] = height
-
-        ## Dealing with each line
-        for c1, (i, line) in enumerate(myDict):
-
-            if c1 != 0:
-                minS, minE = finilize_line(myDict, curLine, align)
-                heightLine = heightLine - minS - minE
-                height += heightLine + INTERLINE
-                curLine += 1
-                cursor = 0
-
-            heightLine = 1
-
-            if height > MAX_HEIGHT:
-                break
-
-            myDict[(i, line)] = {(j, word): {} for j, word in enumerate(line.split())}
-
-            lineDict = myDict[(i, line)]
-
-            ## Dealing with each word
-            for c2, (j, word) in enumerate(lineDict):
-
-                wordWrapTriggered = True if cursor == 0 else False
-
-                if c2 != 0:
-                    cursor += INTERWORD
-
-                lineDict[(j, word)] = {(k, letter): {} for k, letter in enumerate(word)}
-
-                wordDict = lineDict[(j, word)]
-
-                ## Dealing with each letter
-                for c3, (k, letter) in enumerate(wordDict):
-
-                    if c3 != 0:
-                        cursor += INTERLETTER
-
-                    wordDict[(k, letter)] = {"cursor": cursor}
-
-                    # Render the letter and identify and delete unecessary spaces
-                    renderLines = font.renderText(letter).splitlines()
-
-                    # Delete empty lines
-                    spaceStart = spaceEnd = len(renderLines[0])
-                    oneCharFound = False
-                    emptyLineStart = emptyLineEnd = 0
-                    for line in renderLines.copy():
-
-                        emptyLineBool = True if line == " " * len(line) else False
-                        emptyLineStart += (
-                            1 if emptyLineBool and oneCharFound == False else 0
-                        )
-                        emptyLineEnd = (
-                            emptyLineEnd + 1 if emptyLineBool and oneCharFound else 0
-                        )
-
-                        # Looking for starting and ending spaces
-                        matchStart = re.search(r"\A(\s+)\S+", line)
-                        matchEnd = re.search(r"\S+(\s+)\Z", line)
-                        spaceStart = min(
-                            spaceStart,
-                            len(matchStart[1])
-                            if matchStart is not None
-                            else len(line)
-                            if emptyLineBool
-                            else 0,
-                        )
-                        spaceEnd = min(
-                            spaceEnd,
-                            len(matchEnd[1])
-                            if matchEnd is not None
-                            else len(line)
-                            if emptyLineBool
-                            else 0,
-                        )
-
-                        if matchStart is not None or matchEnd is not None:
-                            oneCharFound = True
-
-                    # Deleting spaces at the end and begining
-                    root.debug(f"s,e : {spaceStart, spaceEnd}")
-                    renderLines = (
-                        list(map(lambda x: x[spaceStart:-spaceEnd], renderLines))
-                        if spaceEnd != 0
-                        else list(map(lambda x: x[spaceStart:], renderLines))
-                    )
-
-                    cursor += len(renderLines[0])
-                    heightLine = max(len(renderLines), heightLine)
-
-                    # Dealing with length of line
-                    if cursor > LINE_LENGTH:
-
-                        if wordWrap and wordWrapTriggered is False:
-                            nextLineCursor = re_configure(wordDict, curLine + 1)
-                            wordWrapTriggered = True
-                        else:
-                            nextLineCursor = 0
-
-                        minS, minE = finilize_line(myDict, curLine, align)
-                        heightLine = heightLine - minS - minE
-                        lineVsHeight[curLine] = height
-                        height += heightLine + INTERLINE
-                        if height > MAX_HEIGHT:
-                            wordOK = True
-                            break
-                        else:
-                            heightLine = len(renderLines)
-                            cursor = nextLineCursor
-                            curLine += 1
-                            wordDict[(k, letter)] = {"cursor": cursor}
-                            cursor += len(renderLines[0])
-
-                    # Adding to dictionnary
-                    wordDict[(k, letter)].update(
-                        {
-                            "content": renderLines,
-                            "line": curLine,
-                            "empty_start": emptyLineStart,
-                            "empty_end": emptyLineEnd,
-                        }
-                    )
-                    lineVsHeight[curLine] = height
-                    root.debug(f"letter {letter}, {wordDict[(k, letter)]}")
-                    root.debug(f"lineVsHeight : {lineVsHeight}")
-
-        # Last operations
-        minS, minE = finilize_line(myDict, curLine, align)
-        heightLine = heightLine - minS - minE
-        lineVsHeight[curLine] = height
-        heightTot = height + heightLine
-
-        root.debug(f"myDict : {myDict}")
-        root.debug(f"lineVsHeight : {lineVsHeight}")
-        # Creation of map of characters
-        finalDict = {}
-        for (i, line), lineDict in myDict.items():
-            for (j, word), wordDict in lineDict.items():
-                for (k, letter), letterDict in wordDict.items():
-                    heightLetter = len(letterDict["content"])
-                    for m, line in enumerate(letterDict["content"]):
-                        for n, char in enumerate(line):
-                            x = letterDict["cursor"] + n
-                            y = heightTot - lineVsHeight[letterDict["line"]] - m
-                            finalDict[(letter, x, y)] = 1 if char not in (" ",) else 0
-
-        root.debug(f"finalDict : {finalDict}")
-        return finalDict
-
-    def wallwrite(
-        wallpath,
-        text,
-        color=10,
-        plain=False,
-        background=14,
-        centered=False,
-        flying=False,
-        line_length=None,
-        max_height=None,
-    ):
-
-        # Fetching wallpath
-        dico_corvox, full_content = load(wallpath)
-
-        # Maximum line length
-        max_line_length = len(dico_corvox)
-        if line_length is None or line_length > max_line_length:
-            line_length = max_line_length
-            print()
-
-        # Prepare the text
-        dictext2 = prepare_text(text, font, INTERLINE, SPACE_LEN, line_length)
-        dictext = {(x, y): value for (l, x, y), value in dictext2.items()}
-        length_text = max([x for x, y in dictext])
-        height_text = max([y for x, y in dictext])
-
-        # Determine the start of the writing
-        # Get the max length of prepared words
-        startl = 0
-        endl = startl + length_text
-        starth = 1
-        endh = starth + height_text
-
-        if centered:
-            startl = round(max_line_length / 2 - length_text / 2)
-            endl = round(max_line_length / 2 + length_text / 2)
-
-        max_height = (
-            endh + 1
-        )  # +1 is here to have at least one line over the words when plain=True
-        if flying:
-            if max_height is None or max_height < height_text:
-                max_height = height_text * 2
-
-            starth = round(max_height / 2 - height_text / 2)
-            endh = round(max_height / 2 + height_text / 2)
-
-        # Browse dico_corvox
-        # A copy of dico_corvox is iterated
-        # Warning! count_and_voxels even it's a copy will point the actual item of dico_corvox
-        dico_corvox_copy = dico_corvox.copy()
-        for l, ((x, y), count_and_voxels) in enumerate(dico_corvox_copy.items()):
-
-            cur_voxels = count_and_voxels["voxels"]
-            new_voxels = {}
-            if l < startl or l > endl:
-                pass
-
-            else:
-                for h in range(max_height):
-                    # color choice
-                    if color == "random":
-                        t = choice([co for co in ALLCOLORS if co != background])
-                    else:
-                        t = color
-
-                    if h == 0 and plain:
-                        new_voxels[h] = 15
-
-                    elif h > endh and plain is False:
-                        break
-
-                    elif h < starth and plain is False:
-                        pass
-
-                    elif (l - startl, h - starth) in dictext and dictext[
-                        (l - startl, h - starth)
-                    ]:
-                        if color == "empty":
-                            pass
-                        else:
-                            new_voxels[h] = t
-
-                    elif plain:
-                        if background == "random":
-                            new_voxels[h] = choice(
-                                [co for co in ALLCOLORS if co != color]
-                            )
-                        else:
-                            new_voxels[h] = background
-
-            # "Count" adjustment according to the amount of voxels
-            dico_corvox[(x, y)]["count"] = len(new_voxels)
-            dico_corvox[(x, y)]["voxels"] = new_voxels
-
-        # Return
-        return dico_corvox
-
-    corvox = wallwrite(wallpath, text, plain=False, color=0)
+def write_town(**kwargs):
+
+    #Args input
+    root.debug(f"Input : {kwargs}")
+
+    #Colors and Background deal
+    if kwargs.get('color') == tuple():
+        del kwargs['color']
+    if kwargs.get('background') == tuple():
+        del kwargs['background']
+
+    wallpath = kwargs.get('wallpath')
+    advanced = kwargs.get('advanced')
+
+    #wallpath = r"temp\TownU7m8kmT0Wu0m2b5A.scape" #temporary
+    if wallpath:
+        # Determining whether it's .scape file or .txt and how the corvox dictionnary is acquired
+        if wallpath.endswith('.scape'):
+            corvox, full_content = load(wallpath)
+        else:
+            with open(wallpath) as file:
+                corvox = clipToCorvox(file.read())
+
+        kwargs['corvox'] = corvox
+
+    #Advanced contains additional data
+    if advanced and advanced != '':
+        try:
+            answer = json.loads(advanced)
+            root.debug("Output read :\n{}".format(answer))
+        except:
+            root.exception("Invalid format for Advanced : {}".format(advanced))
+            return "'Advanced' format error"
+
+        #Input dictionary is updated with advanced content before wallwrite is called
+        kwargs.update(answer)
+        root.debug(f"Input after advanced : {kwargs}")
+
+    #Get Template
+    getTemplate = kwargs.get('template') #Option to fetch the template clip
+    if getTemplate:
+        corvoxToClip(corvox)
+        return True
+
+    
+
+
+    # # temp
+    # font = Figlet(font="6x10")
+    # # text = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    # text = "Help\n!!!"
+    # dictLetter = {}
+    # LINE_LENGTH = 30
+    # SPACE_LEN = 4
+    # INTERLINE = 2
+    # # letter = 'w'
+    # root.debug(f"{font.renderText(text)}")
+    # # exit(0)
+    
+
+    corvox = wallwrite(**kwargs)
 
     # Copy to clipboard
     new_clip = corvoxToClip(corvox)
+
+    return True
 
 
 # Store the clip
@@ -1939,5 +1660,9 @@ class Utility(object):
         return redoClip()
 
     # Write
-    def write(self, settings):
-        return write_town()
+    def write(self, **kwargs):
+        return write_town(**kwargs)
+
+    # Fetch templates
+    def fetch_templates(self):
+        return fetch_templates()

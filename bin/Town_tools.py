@@ -26,6 +26,7 @@ TIMESTAMP_FORMAT = "%Y/%m/%d %H:%M:%S"
 # Logging
 root = getLogger("Town.tools")
 
+# Look for the given path in exe directory and current dir
 def exePath(mypath):
     if exists(mypath):
         return mypath
