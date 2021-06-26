@@ -505,18 +505,19 @@ def paint(
     # Return
     return dico_corvox
 
+
 # Change a text as input in dictionary of positions for wallwrite using Figlet, supporting a bunch of options
 def prepare_text(**kwargs):
 
-    text = kwargs.get('text')
-    fontstr = kwargs.get('font', '6x10')
-    INTERLINE = kwargs.get('INTERLINE', 2)
-    SPACE_LEN = kwargs.get('SPACE_LEN', 4)
-    LINE_LENGTH = kwargs.get('LINE_LENGTH', len(kwargs['corvox']))
-    INTERLETTER = kwargs.get('INTERLETTER', 1)
-    INTERWORD = kwargs.get('INTERWORD', 4)
-    wordWrap = kwargs.get('wordwrap', True)
-    align = kwargs.get('align', "middle")  # left by default, or middle, or right
+    text = kwargs.get("text")
+    fontstr = kwargs.get("font", "6x10")
+    INTERLINE = kwargs.get("INTERLINE", 2)
+    SPACE_LEN = kwargs.get("SPACE_LEN", 4)
+    LINE_LENGTH = kwargs.get("LINE_LENGTH", len(kwargs["corvox"]))
+    INTERLETTER = kwargs.get("INTERLETTER", 1)
+    INTERWORD = kwargs.get("INTERWORD", 4)
+    wordWrap = kwargs.get("wordwrap", True)
+    align = kwargs.get("align", "middle")  # left by default, or middle, or right
 
     # Strip unecessary spaces over and below letters
     def finilize_line(dico, linenb, align="left"):
@@ -553,9 +554,7 @@ def prepare_text(**kwargs):
         midCursor = round(
             (LINE_LENGTH - (maxCursor - minCursor)) / 2
         )  # cursor if align == 'middle'
-        rCursor = LINE_LENGTH - (
-            maxCursor - minCursor
-        )  # cursor if align == 'right'
+        rCursor = LINE_LENGTH - (maxCursor - minCursor)  # cursor if align == 'right'
         for line in dico.values():
             for word in line.values():
                 for letter in word.values():
@@ -601,7 +600,7 @@ def prepare_text(**kwargs):
     ################################
 
     # Font
-    font = Figlet(font = fontstr)
+    font = Figlet(font=fontstr)
 
     MAX_HEIGHT = 255
 
@@ -758,62 +757,66 @@ def prepare_text(**kwargs):
                     for n, char in enumerate(line):
                         x = letterDict["cursor"] + n
                         y = heightTot - lineVsHeight[letterDict["line"]] - m
-                        finalDict[(x, y)] = {'line':i, 'word':j, 'letter':letter, 'idl': k} if char not in (" ",) else 0
+                        finalDict[(x, y)] = (
+                            {"line": i, "word": j, "letter": letter, "idl": k}
+                            if char not in (" ",)
+                            else 0
+                        )
 
     root.debug(f"finalDict : {finalDict}")
     return finalDict
 
+
 # From a given text, make a Townscaper dictionary, too many options !
 def wallwrite(**kwargs):
-    
-    #Settings
-    dico_corvox = kwargs.get('corvox')
-    
-    text = kwargs.get('text', 'notext')
-    text = "(empty)" if text == '' else text
 
-    color = kwargs.get('color', 10)
+    # Settings
+    dico_corvox = kwargs.get("corvox")
 
-    #Plain handling to stay logic
-    plain = kwargs.get('plain', False)
-    background = kwargs.get('background')
+    text = kwargs.get("text", "notext")
+    text = "(empty)" if text == "" else text
+
+    color = kwargs.get("color", 10)
+
+    # Plain handling to stay logic
+    plain = kwargs.get("plain", False)
+    background = kwargs.get("background")
     plain = True if background is not None and background != tuple() else False
 
-    centered = kwargs.get('align', 'left')
-    line_length = kwargs.get('LINE_LENGTH', len(dico_corvox))
-    mode = kwargs.get('mode')
-    dictColors = kwargs.get('dict_colors')
-    alternate = kwargs.get('alternate')
-    crown = kwargs.get('crown')
-    reverse_all = kwargs.get('reverse')
-    startpos = kwargs.get('start')
-    fullstruct = kwargs.get('full')
-
+    centered = kwargs.get("align", "left")
+    line_length = kwargs.get("LINE_LENGTH", len(dico_corvox))
+    mode = kwargs.get("mode")
+    dictColors = kwargs.get("dict_colors")
+    alternate = kwargs.get("alternate")
+    crown = kwargs.get("crown")
+    reverse_all = kwargs.get("reverse")
+    startpos = kwargs.get("start")
+    fullstruct = kwargs.get("full")
 
     # Alternate requirements
     # Alternate does not work with dictColors or if color is not tuple
-    if alternate == 'background' and isinstance(background, tuple) is False:
+    if alternate == "background" and isinstance(background, tuple) is False:
         alternate = None
-    elif alternate == 'text' and isinstance(color, tuple) is False:
+    elif alternate == "text" and isinstance(color, tuple) is False:
         alternate = None
-    elif alternate in ('both', 'all') and (isinstance(background, tuple) is False or isinstance(color, tuple) is False):
+    elif alternate in ("both", "all") and (
+        isinstance(background, tuple) is False or isinstance(color, tuple) is False
+    ):
         alternate = None
     elif alternate and dictColors:
         alternate = None
-    elif alternate == 'text':
+    elif alternate == "text":
         cycleText = cycle(color)
-    elif alternate == 'background':
+    elif alternate == "background":
         cycleBack = cycle(background)
-    elif alternate in ('both', 'all'):
+    elif alternate in ("both", "all"):
         cycleText = cycle(color)
         cycleBack = cycle(background)
-
 
     # Maximum line length
     max_line_length = len(dico_corvox)
     if line_length is None or line_length > max_line_length:
         line_length = max_line_length
-
 
     # Prepare the text
     dictext = prepare_text(**kwargs)
@@ -829,10 +832,10 @@ def wallwrite(**kwargs):
     endl = 9999999 if fullstruct else startl + length_text
     endh = starth + height_text
 
-    centered = True if centered == 'middle' else False
+    centered = True if centered == "middle" else False
     if centered and not fullstruct:
-        startl = min(lx)#round(max_line_length / 2 - length_text / 2)
-        endl = max(lx)#round(max_line_length / 2 - length_text / 2)
+        startl = min(lx)  # round(max_line_length / 2 - length_text / 2)
+        endl = max(lx)  # round(max_line_length / 2 - length_text / 2)
 
     root.debug(f"{(startl, endl)}")
 
@@ -840,18 +843,19 @@ def wallwrite(**kwargs):
         endh + 1
     )  # +1 is here to have at least one line over the words when plain=True
 
-
     # Browse dico_corvox
-    
 
-    #The dictionary is sorted according to voxels height
-    dico_corvox_copy = sorted(dico_corvox.items(), key= lambda x: max(x[1]['voxels']), reverse = True if reverse_all else False)
+    # The dictionary is sorted according to voxels height
+    dico_corvox_copy = sorted(
+        dico_corvox.items(),
+        key=lambda x: max(x[1]["voxels"]),
+        reverse=True if reverse_all else False,
+    )
 
     # If startpos is defined then the list is rearranged according to
     # Note that startpos should only be used with circular structure
     if startpos:
         dico_corvox_copy = dico_corvox_copy[startpos:] + dico_corvox_copy[:startpos]
-    
 
     # Previous value for color according to word, line or letter
     dictMode = {}
@@ -869,7 +873,11 @@ def wallwrite(**kwargs):
 
                 # color choice (first layer)
                 if color == "random":
-                    t = choice([co for co in ALLCOLORS if co not in background]) if isinstance(background, tuple) else choice([co for co in ALLCOLORS if co != background])
+                    t = (
+                        choice([co for co in ALLCOLORS if co not in background])
+                        if isinstance(background, tuple)
+                        else choice([co for co in ALLCOLORS if co != background])
+                    )
                 elif isinstance(color, tuple):
                     t = choice(color)
                 else:
@@ -884,78 +892,99 @@ def wallwrite(**kwargs):
                 elif h < starth and plain is False:
                     pass
 
-                elif (l, h - starth) in dictext and dictext[
-                    (l, h - starth)
-                ]:
-
+                elif (l, h - starth) in dictext and dictext[(l, h - starth)]:
 
                     # Color choice (second layer)
                     if dictColors:
-                        t = dictColors.get(dictext[(l, h - starth)]['letter'], t)
+                        t = dictColors.get(dictext[(l, h - starth)]["letter"], t)
 
-                    #Alternate handling
-                    elif alternate in ('both', 'all', 'text') and not mode:
+                    # Alternate handling
+                    elif alternate in ("both", "all", "text") and not mode:
                         t = next(cycleText)
-                        if t == 'random':
-                            t = choice([co for co in ALLCOLORS if co not in background]) if isinstance(background, tuple) else choice([co for co in ALLCOLORS if co != background])
+                        if t == "random":
+                            t = (
+                                choice([co for co in ALLCOLORS if co not in background])
+                                if isinstance(background, tuple)
+                                else choice(
+                                    [co for co in ALLCOLORS if co != background]
+                                )
+                            )
 
-
-                    #Mode handling
+                    # Mode handling
                     if dictColors is None and mode:
                         data = dictext[(l, h - starth)]
-                        if mode in ('1-letter-1-color', '1l1c'):
-                            key = data['line'], data['word'], data['idl']
+                        if mode in ("1-letter-1-color", "1l1c"):
+                            key = data["line"], data["word"], data["idl"]
 
-                        elif mode in ('1-word-1-color', '1w1c'):
-                            key = data['line'], data['word']
+                        elif mode in ("1-word-1-color", "1w1c"):
+                            key = data["line"], data["word"]
 
-                        elif mode in ('1-line-1-color', '1li1c'):
-                            key = data['line']
+                        elif mode in ("1-line-1-color", "1li1c"):
+                            key = data["line"]
 
-                        #Applying color
+                        # Applying color
                         if key in dictMode:
                             t = dictMode[key]
 
-                        #Alternate + mode
-                        elif alternate in ('both', 'all', 'text'): 
+                        # Alternate + mode
+                        elif alternate in ("both", "all", "text"):
                             t = next(cycleText)
-                            if t == 'random':
-                                t = choice([co for co in ALLCOLORS if co not in background]) if isinstance(background, tuple) else choice([co for co in ALLCOLORS if co != background])
+                            if t == "random":
+                                t = (
+                                    choice(
+                                        [co for co in ALLCOLORS if co not in background]
+                                    )
+                                    if isinstance(background, tuple)
+                                    else choice(
+                                        [co for co in ALLCOLORS if co != background]
+                                    )
+                                )
                             dictMode[key] = t
                         else:
                             dictMode[key] = t
 
-                    
-                    #Applying the color
+                    # Applying the color
                     if t == "empty":
                         pass
                     else:
                         new_voxels[h] = t
 
                 elif plain:
-                    #Crown option
+                    # Crown option
                     if crown:
                         listx = [c for c in range(l - crown, l + crown + 1)]
-                        listy = [c for c in range(h - starth - crown, h - starth + crown + 1)]
-                        if any([(a, b) in dictext and dictext[(a,b)] for a in listx for b in listy]):
+                        listy = [
+                            c for c in range(h - starth - crown, h - starth + crown + 1)
+                        ]
+                        if any(
+                            [
+                                (a, b) in dictext and dictext[(a, b)]
+                                for a in listx
+                                for b in listy
+                            ]
+                        ):
                             pass
                         else:
                             continue
 
-                    #Alternate handling
-                    if alternate in ('both', 'all', 'background'):
+                    # Alternate handling
+                    if alternate in ("both", "all", "background"):
                         b = next(cycleBack)
-                        if b == 'random':
-                            b = choice([co for co in ALLCOLORS if co not in background]) if isinstance(background, tuple) else choice([co for co in ALLCOLORS if co != background])
+                        if b == "random":
+                            b = (
+                                choice([co for co in ALLCOLORS if co not in background])
+                                if isinstance(background, tuple)
+                                else choice(
+                                    [co for co in ALLCOLORS if co != background]
+                                )
+                            )
                         new_voxels[h] = b
 
                     elif background == "random":
-                        new_voxels[h] = choice(
-                            [co for co in ALLCOLORS if co != t]
-                        )
+                        new_voxels[h] = choice([co for co in ALLCOLORS if co != t])
                     elif isinstance(background, tuple):
                         b = choice(background)
-                        if b != 'empty':
+                        if b != "empty":
                             new_voxels[h] = b
                     else:
                         new_voxels[h] = background
@@ -967,30 +996,34 @@ def wallwrite(**kwargs):
     # Return
     return dico_corvox
 
+
 # Flip the given structure upside down
 def flip(
     dico_corvox,
     color=14,
     color_filter=None,
 ):
-    
+
     # Find maximum height in dico_corvox
-    maxHeight = max([max(data['voxels']) for data in dico_corvox.values()])
+    maxHeight = max([max(data["voxels"]) for data in dico_corvox.values()])
 
     # A copy of dico_corvox is browsed
     # Warning! count_and_voxels even it's a copy will point the actual item of dico_corvox
     dico_corvox_copy = dico_corvox.copy()
     for (x, y), count_and_voxels in dico_corvox_copy.items():
 
-
         cur_voxels = count_and_voxels["voxels"]
 
         new_voxels = {}
         for h, t in cur_voxels.items():
 
-            if color_filter is None or (isinstance(color_filter, tuple) and t in color_filter) or (isinstance(color_filter, int) and t == color_filter):
+            if (
+                color_filter is None
+                or (isinstance(color_filter, tuple) and t in color_filter)
+                or (isinstance(color_filter, int) and t == color_filter)
+            ):
 
-                #Determine the new height
+                # Determine the new height
                 new_h = maxHeight - h
 
                 # new_h=0 ==> t=15 Always
@@ -1012,6 +1045,7 @@ def flip(
 
     # Return
     return dico_corvox
+
 
 # Calculate the angle between three 2 dimensions points, return it in degrees
 def cangle(pt1, pt2, pt3):

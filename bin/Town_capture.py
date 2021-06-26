@@ -31,7 +31,7 @@ class TownCapture:
 
         # mss instance for screenshot of Townscaper
         self.sct = mss("Townscaper")
-        self.process = None #ffmpeg process to handle encoding of the video
+        self.process = None  # ffmpeg process to handle encoding of the video
         self.region = None  # Used by 'record' to know the dimension of the output
 
         # Time management
@@ -40,12 +40,12 @@ class TownCapture:
         self._time_average = 0.04
 
         # For record
-        self.dirname = kwargs.get('dirname', '')
-        self.target_fps = kwargs.get('target_fps')
+        self.dirname = kwargs.get("dirname", "")
+        self.target_fps = kwargs.get("target_fps")
         self.bts_vs_size = 3000 / (1920 * 1080)  # kbits/seconds/pixels
-        self.preset = kwargs.get('preset', 'ultrafast')
-        self.force_bitrate = kwargs.get('bitrate')
-        self.loglevel = 'info' if kwargs.get('loglevel') == 'DEBUG' else 'quiet'
+        self.preset = kwargs.get("preset", "ultrafast")
+        self.force_bitrate = kwargs.get("bitrate")
+        self.loglevel = "info" if kwargs.get("loglevel") == "DEBUG" else "quiet"
         root.debug(kwargs)
 
         # Benchmark
@@ -130,13 +130,27 @@ class TownCapture:
 
         SCREEN_SIZE = self.region["width"], self.region["height"]
         root.debug(f"Settings : {SCREEN_SIZE} ; {self.target_fps}")
-        
+
         self.process = (
-        ffmpeg
-            .input('pipe:', format='rawvideo', pix_fmt='bgra', fflags='discardcorrupt', s='{}x{}'.format(self.region["width"], self.region["height"]))
-            .output(path,  r=self.target_fps, pix_fmt='yuv420p', preset=self.preset, loglevel=self.loglevel, tune='zerolatency', **{"c:v": "libx264", "b:v": bitrate * 1000})
+            ffmpeg.input(
+                "pipe:",
+                format="rawvideo",
+                pix_fmt="bgra",
+                fflags="discardcorrupt",
+                s="{}x{}".format(self.region["width"], self.region["height"]),
+            )
+            .output(
+                path,
+                r=self.target_fps,
+                pix_fmt="yuv420p",
+                preset=self.preset,
+                loglevel=self.loglevel,
+                tune="zerolatency",
+                **{"c:v": "libx264", "b:v": bitrate * 1000},
+            )
             .overwrite_output()
-            .run_async(pipe_stdin=True))
+            .run_async(pipe_stdin=True)
+        )
 
     def stop_recorder(self):
         """None indicate to record method that it's the end of recording"""
@@ -205,6 +219,7 @@ def move(x, y, absolute=True, duration=0, steps_per_second=120.0, synchro=None):
     # Feedback
     return True
 
+
 def mydrag(
     start_x,
     start_y,
@@ -229,7 +244,7 @@ def mydrag(
     return answer
 
 
-def isShowcasable(pixels, duration, tomodify='duration'):
+def isShowcasable(pixels, duration, tomodify="duration"):
     """
     Calculate the speed, the mouse would need to reach and return True if it's considered feasible or a string precising what's wrong
     """
@@ -244,14 +259,14 @@ def isShowcasable(pixels, duration, tomodify='duration'):
     ):  # pixels = 0 means the capture is made without any computed move
         return True
     elif speed < MINSPEED:
-        if tomodify == 'duration':
-            change = round(pixels / (MINSPEED+1))
+        if tomodify == "duration":
+            change = round(pixels / (MINSPEED + 1))
         else:
             change = duration * MINSPEED
         return f"Mouse move would be too slow: try {tomodify} : {change}"
     else:
-        if tomodify == 'duration':
-            change = round(pixels / (MAXSPEED-1))
+        if tomodify == "duration":
+            change = round(pixels / (MAXSPEED - 1))
         else:
             change = duration * MAXSPEED
         return f"Mouse move would be too fast: try {tomodify} : {change}"

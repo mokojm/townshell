@@ -1,4 +1,5 @@
 from json import loads
+from random import choice
 
 from gui.tools import HeightSlideTextInput
 from kivy.app import App
@@ -15,18 +16,18 @@ class WriteScreen(Screen):
         self.dictTemp = self.util.fetch_templates()
         super(WriteScreen, self).__init__(**kwargs)
 
-    #Gather all templates
+    # Gather all templates
     def fetch(self):
         self.dictTemp = self.util.fetch_templates()
         self.box_path.path.values = list(self.dictTemp)
 
-    #Validate that advanced content is a valid json
+    # Validate that advanced content is a valid json
     def validateJson(self):
 
         advContent = self.box_adv.clip_text.text
-        
-        #When advanced is empty
-        if advContent == '':
+
+        # When advanced is empty
+        if advContent == "":
             self.box_adv.clip_text.json_valid = True
 
         else:
@@ -36,26 +37,42 @@ class WriteScreen(Screen):
             except:
                 self.box_adv.clip_text.json_valid = False
 
-
-
     def save_to_clipboard(self):
 
-        #Colors handling
+        # Colors handling
         colors = tuple(
             child.text
             for child in self.box_color.children
             if child.name == "colspin" and child.text != ""
         )
-        colors = tuple(int(c) if c.isnumeric() else 'empty' if c == 'E' else 'random' if c == 'R' else c for c in colors)
+        colors = tuple(
+            int(c)
+            if c.isnumeric()
+            else "empty"
+            if c == "E"
+            else "random"
+            if c == "R"
+            else c
+            for c in colors
+        )
         colors = colors[0] if len(colors) == 1 else colors
 
-        #Background handling
+        # Background handling
         background = tuple(
             child.text
             for child in self.box_back.children
             if child.name == "colspin" and child.text != ""
         )
-        background = tuple(int(c) if c.isnumeric() else 'empty' if c == 'E' else 'random' if c == 'R' else c for c in background)
+        background = tuple(
+            int(c)
+            if c.isnumeric()
+            else "empty"
+            if c == "E"
+            else "random"
+            if c == "R"
+            else c
+            for c in background
+        )
         background = background[0] if len(background) == 1 else background
 
         settings = {
@@ -67,9 +84,17 @@ class WriteScreen(Screen):
             "align": self.box_ali.ali.text,
             "color": colors,
             "background": background,
-            "advanced": self.box_adv.clip_text.text
+            "advanced": self.box_adv.clip_text.text,
         }
-        #print(settings)
+
+        # Funny stuff
+        if settings["text"] == "":
+            settings["text"] = choice(
+                ["Yolo", "Coucou", "*(^_^)*", "(T_T)", "1+1=3", "Pika pika"]
+            )
+        if settings["color"] == tuple():
+            settings["color"] = choice([i for i in range(0, 15)])
+        # print(settings)
 
         # Call the Write method of self.util
         answer = self.util.write(**settings)

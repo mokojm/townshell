@@ -100,7 +100,12 @@ def townShell(args):
     elif cmd == "merge":
         feedback = util.merge(settings)
     elif cmd == "write":
-        settings = {'text':'Hello', 'wallpath': r"templates\line1_48.txt", "align":"middle", "background":14}
+        settings = {
+            "text": "Hello",
+            "wallpath": r"templates\line1_48.txt",
+            "align": "middle",
+            "background": 14,
+        }
         feedback = util.write(**settings)
     elif cmd == "flip":
         feedback = util.flip()
@@ -112,7 +117,7 @@ def townShell(args):
     else:
         print("Successful execution")
 
-    #End all
+    # End all
     util.end_core()
 
 

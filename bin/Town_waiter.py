@@ -989,60 +989,66 @@ def dig_town(args):
     # Success
     return True
 
+
 # Fetch all available template for 'Write' and return a dictionary of name vs path
 def fetch_templates():
 
     templatePaths = {}
-    with scandir(exePath('templates')) as it:
+    with scandir(exePath("templates")) as it:
         for entry in it:
             base, ext = splitext(entry.name)
-            if ext == '.txt':
+            if ext == ".txt":
                 templatePaths[base] = entry.path
 
-
-    feedback = read_cfg('write_templates')
+    feedback = read_cfg("write_templates")
     if feedback == []:
         pass
     elif feedback and isinstance(feedback, list):
         for entry in feedback:
-            base, ext = splitext(entry.name)
-            if ext == '.txt':
-                templatePaths[base] = entry.path
+            if isdir(entry):
+                with scandir(entry) as it:
+                    for file in it:
+                        base, ext = splitext(file.name)
+                        if ext == ".txt":
+                            templatePaths[base] = file.path
+            else:
+                base, ext = splitext(entry)
+                if ext == ".txt":
+                    templatePaths[basename(base)] = entry
     else:
         root.warning(f"Wrong format : {feedback}")
 
     return templatePaths
 
 
-
 # Write the words in Townscaper
 def write_town(**kwargs):
 
-    #Args input
+    # Args input
     root.debug(f"Input : {kwargs}")
 
-    #Colors and Background deal
-    if kwargs.get('color') == tuple():
-        del kwargs['color']
-    if kwargs.get('background') == tuple():
-        del kwargs['background']
+    # Colors and Background deal
+    if kwargs.get("color") == tuple():
+        del kwargs["color"]
+    if kwargs.get("background") == tuple():
+        del kwargs["background"]
 
-    wallpath = kwargs.get('wallpath')
-    advanced = kwargs.get('advanced')
+    wallpath = kwargs.get("wallpath")
+    advanced = kwargs.get("advanced")
 
-    #wallpath = r"temp\TownU7m8kmT0Wu0m2b5A.scape" #temporary
+    # wallpath = r"temp\TownU7m8kmT0Wu0m2b5A.scape" #temporary
     if wallpath:
         # Determining whether it's .scape file or .txt and how the corvox dictionnary is acquired
-        if wallpath.endswith('.scape'):
+        if wallpath.endswith(".scape"):
             corvox, full_content = load(wallpath)
         else:
             with open(wallpath) as file:
                 corvox = clipToCorvox(file.read())
 
-        kwargs['corvox'] = corvox
+        kwargs["corvox"] = corvox
 
-    #Advanced contains additional data
-    if advanced and advanced != '':
+    # Advanced contains additional data
+    if advanced and advanced != "":
         try:
             answer = json.loads(advanced)
             root.debug("Output read :\n{}".format(answer))
@@ -1050,18 +1056,15 @@ def write_town(**kwargs):
             root.exception("Invalid format for Advanced : {}".format(advanced))
             return "'Advanced' format error"
 
-        #Input dictionary is updated with advanced content before wallwrite is called
+        # Input dictionary is updated with advanced content before wallwrite is called
         kwargs.update(answer)
         root.debug(f"Input after advanced : {kwargs}")
 
-    #Get Template
-    getTemplate = kwargs.get('template') #Option to fetch the template clip
+    # Get Template
+    getTemplate = kwargs.get("template")  # Option to fetch the template clip
     if getTemplate:
         corvoxToClip(corvox)
         return True
-
-    
-
 
     # # temp
     # font = Figlet(font="6x10")
@@ -1074,7 +1077,6 @@ def write_town(**kwargs):
     # # letter = 'w'
     # root.debug(f"{font.renderText(text)}")
     # # exit(0)
-    
 
     corvox = wallwrite(**kwargs)
 
@@ -1420,30 +1422,32 @@ def ProcessForCapture(cqueue, mqueue, queue, synchro, **kwargs):
 def initTownCapture():
 
     global queue  # for logging
-    
+
     myManager = Manager()
-  
-    #Fetch 'townshell.cfg' input for Capture and add Manager objects
+
+    # Fetch 'townshell.cfg' input for Capture and add Manager objects
     initDict = {
-    'bitrate': read_cfg('bitrate'),
-    'dirname': read_cfg('dirname'),
-    'preset': read_cfg('preset'),
-    'loglevel': read_cfg('loglevel'),
-    'queue': queue,
-    'cqueue': myManager.Queue(),  # Queue objects for communication between process
-    'mqueue': myManager.Queue(),     # Queue objects for communication between process
-    'synchro': myManager.Event(),       # To allow showcase and capture to start at the same time
-    } 
+        "bitrate": read_cfg("bitrate"),
+        "dirname": read_cfg("dirname"),
+        "preset": read_cfg("preset"),
+        "loglevel": read_cfg("loglevel"),
+        "queue": queue,
+        "cqueue": myManager.Queue(),  # Queue objects for communication between process
+        "mqueue": myManager.Queue(),  # Queue objects for communication between process
+        "synchro": myManager.Event(),  # To allow showcase and capture to start at the same time
+    }
     # Initialize the Process
-    
-    captureProcess = Process(
-        target=ProcessForCapture,
-        daemon=True,
-        kwargs=initDict
-    )
+
+    captureProcess = Process(target=ProcessForCapture, daemon=True, kwargs=initDict)
     captureProcess.start()
 
-    return captureProcess, initDict.get('cqueue'), initDict.get('mqueue'), initDict.get('synchro'), myManager
+    return (
+        captureProcess,
+        initDict.get("cqueue"),
+        initDict.get("mqueue"),
+        initDict.get("synchro"),
+        myManager,
+    )
 
 
 # Short function to get window size used by Townscaper
