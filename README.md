@@ -166,28 +166,28 @@ Many options are available using "Advanced" field, it follows JSON format, examp
 {"full": true, "alternate": "both"}
 
 Here are the available options (case sensitive) :
-full: (true or false) // Defines if the full length of wallpath should be used or not, default to "false", should be used only when background is set too
-alternate: ("text", "background", "both") // Colors will be used alternatively. Should be used with at least two colors in "Colors" or "Background" to be effective. (need improvement)
-mode: ("1l1c", "1w1c", "1li1c") // "1l1c" = "1-letter-1-color", "1w1c" = "1-word-1-color", "1li1c" = "1-line-1-color" it changes how colors are given to blocks. Can't be used with "dict_colors", can be used with "alternate" (need improvement)
-crown: (positive integer) // use the background colors to draw a crown around letters
-dict_colors: (ex: {"dict_colors": {"a": 1, "n": 0}}) associate colors and letters
-INTERLINE: (positive integer) // amount of blocks between lines of blocks
-SPACE_LEN: (positive integer) // amount of blocks to represent "spaces"
-LINE_LENGTH: (positive integer) // max amount of blocks in one line, by default it's the amount of corners in the path
-INTERLETTER: (positive integer) // amount of blocks between letters
-INTERWORD: (positive integer) // amount of blocks between words (not sure how it's different from SPACE_LEN...anyway)
-start: (positive integer) // Defines the corner position where the text will start, if the end is reached, corners before the given "start" position are used. Default is 0. It can be useful for circular path to choose the position of the text
-template: (true or false) // If true, the template used to define the path will be thrown back instead of the text
+- full: (true or false) // Defines if the full length of wallpath should be used or not, default to "false", should be used only when background is set too
+- alternate: ("text", "background", "both") // Colors will be used alternatively. Should be used with at least two colors in "Colors" or "Background" to be effective. (need improvement)
+- mode: ("1l1c", "1w1c", "1li1c") // "1l1c" = "1-letter-1-color", "1w1c" = "1-word-1-color", "1li1c" = "1-line-1-color" it changes how colors are given to blocks. Can't be used with "dict_colors", can be used with "alternate" (need improvement)
+- crown: (positive integer) // use the background colors to draw a crown around letters
+- dict_colors: (ex: {"dict_colors": {"a": 1, "n": 0}}) associate colors and letters
+- INTERLINE: (positive integer) // amount of blocks between lines of blocks
+- SPACE_LEN: (positive integer) // amount of blocks to represent "spaces"
+- LINE_LENGTH: (positive integer) // max amount of blocks in one line, by default it's the amount of corners in the path
+- INTERLETTER: (positive integer) // amount of blocks between letters
+- INTERWORD: (positive integer) // amount of blocks between words (not sure how it's different from SPACE_LEN...anyway)
+- start: (positive integer) // Defines the corner position where the text will start, if the end is reached, corners before the given "start" position are used. Default is 0. It can be useful for circular path to choose the position of the text
+- template: (true or false) // If true, the template used to define the path will be thrown back instead of the text
 
 The following ones can be used and would override values of the GUI.
-color:
-plain:
-background:
-reverse:
-font:
-wordwrap:
-align:
-wallpath:
+- color:
+- plain:
+- background:
+- reverse:
+- font:
+- wordwrap:
+- align:
+- wallpath:
 
 Tip : If you do not input any text you might get a surprise after clicking "Save to Clipboard" and loading the build in Townscaper ;-)
 
