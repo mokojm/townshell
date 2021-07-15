@@ -613,6 +613,7 @@ def corvoxToSparse(corvox):
     sparse = []
 
     for (x, y), countAndVoxels in corvox.items():
-        sparse.append({"x": x, "y": y, "voxels": countAndVoxels["voxels"]})
+        if countAndVoxels['voxels'] != {}:
+            sparse.append({"x": x, "y": y, "voxels": countAndVoxels["voxels"]})
 
     return sparse

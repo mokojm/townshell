@@ -31,3 +31,10 @@ class ReplicateScreen(Screen):
             myPopUp.level = "ERROR"
             myPopUp.mytext = "See 'town.log' for more information"
         myPopUp.open()
+
+    def reset(self):
+        self.box_height.myheight.value = 0
+        self.box_newc.mync.text = ""
+        self.box_fc.myfc.text = ""
+        self.box_plain.myplain.active = False
+        self.box_cop.cop.value = 1

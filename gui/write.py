@@ -37,6 +37,19 @@ class WriteScreen(Screen):
             except:
                 self.box_adv.clip_text.json_valid = False
 
+    def reset(self):
+        self.box_text.clip_text.text = ""
+        self.box_path.path.text = "line1_48"
+        self.box_plain.myplain.active = False
+        self.box_font.font.text = self.box_font.font.values[0]
+        self.box_wwrap.myplain.active = False
+        self.box_ali.ali.text = self.box_ali.ali.values[0]
+        self.box_back.reset()
+        self.box_color.reset()
+        self.box_adv.clip_text.text = ""
+
+
+
     def save_to_clipboard(self):
 
         # Colors handling

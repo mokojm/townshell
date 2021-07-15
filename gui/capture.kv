@@ -231,9 +231,18 @@
             normal_color: 1, 0.702, 0.682, 1
             down_color: 1, 0.902, 0.882, 1
             size_hint: (0.2, 0.1)
-            pos_hint: {"center_x":0.88, "center_y":0.07}
+            pos_hint: {"center_x":0.8, "center_y":0.07}
             on_release: 
                 if root.manager != None: root.manager.transition.direction = "up"; 
                 root.manager.current = 'menu'
             my_text: "Back"
+
+
+        TownButton:
+            size_hint: (0.2, 0.1)
+            pos_hint: {"center_x":0.55, "center_y":0.07}
+            normal_color: 0,0,0,0.1
+            down_color: 0,0,0,0
+            on_release: root.reset()
+            my_text: "Reset"
 

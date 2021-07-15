@@ -45,21 +45,21 @@ TITLE = r"""
 
 # All available colors
 ALLCOLORS = {
-    0: "red",
-    1: "orange",
-    2: "yellow",
-    3: "yellow_green",
-    4: "light_green",
-    5: "grass_green",
-    6: "green",
-    7: "green_blue",
-    8: "blue",
-    9: "deep_blue",
-    10: "purple",
-    11: "mauve",
-    12: "beige",
-    13: "brown_gray",
-    14: "white",
+    0:  {"name": "red",             "coord":(0.925, 0.267, 0.267)},
+    1:  {"name": "orange",          "coord":(0.953, 0.553, 0.357)},
+    2:  {"name": "yellow",          "coord":(0.953, 0.839, 0.400)},
+    3:  {"name": "yellow_green",    "coord":(0.851, 0.914, 0.463)},
+    4:  {"name": "light_green",     "coord":(0.675, 0.765, 0.486)},
+    5:  {"name": "grass_green",     "coord":(0.518, 0.839, 0.384)},
+    6:  {"name": "green",           "coord":(0.271, 0.812, 0.439)},
+    7:  {"name": "green_blue",      "coord":(0.286, 0.784, 0.647)},
+    8:  {"name": "blue",            "coord":(0.286, 0.729, 0.812)},
+    9:  {"name": "deep_blue",       "coord":(0.325, 0.604, 1)},
+    10: {"name": "purple",          "coord":(0.447, 0.475, 0.812)},
+    11: {"name": "mauve",           "coord":(0.725, 0.341, 0.459)},
+    12: {"name": "beige",           "coord":(0.812, 0.667, 0.549)},
+    13: {"name": "brown_gray",      "coord":(0.698, 0.643, 0.616)},
+    14: {"name": "white",           "coord":(0.871, 0.871, 0.871)}
 }
 
 # Boolean to know whether Keyboard shortcuts are active or not
@@ -78,10 +78,10 @@ clipHistory = {"previous": [], "current": "", "future": []}
 scapedir = ""
 
 # Print the colors a pretty way
-def print_colors():
+# def print_colors():
 
-    for digit, color in ALLCOLORS.items():
-        print("{} ==> {}".format(digit, color))
+#     for digit, color in ALLCOLORS.items():
+#         print("{} ==> {}".format(digit, color))
 
 
 # Initialize logging
@@ -147,257 +147,6 @@ def find_scapedir():
     else:
         root.warning("Townscaper directory not found")
         return ""
-
-
-# Find the saved file that contains the characters given as input
-# char: chain of characters
-# extended: If True, the amount of corners and voxels are returned too,
-def list_scapefiles(char="", extended=False):
-
-    # Case it's obvious
-    if exists(char) and extended is False:
-        root.debug("%s returned directly", char)
-        return [char]
-
-    elif exists(char):
-        char = basename(char)
-
-    # Gathering the files
-    if char.endswith(".scape"):
-        candidates = glob(join(scapedir, "*" + char + "*"))
-    else:
-        candidates = glob(join(scapedir, "*" + char + "*.scape"))
-
-    # Case nothing found
-    if candidates == []:
-        root.warning("No Townscaper saved files were found")
-        return
-
-    # Other cases
-
-    # Extended extraction
-    if extended:
-        scapefiles = {}
-        for path in candidates:
-            # Parsing XML
-            tree = ET.parse(path)
-            loot = tree.getroot()
-            # Amount of corners : coordinates with at list one case filled
-            corners = loot.find("corners")
-            amount_corners = len(corners.findall("C"))
-            # Amount of voxels
-            voxels = loot.find("voxels")
-            amount_voxels = len(voxels.findall("V"))
-
-            # Adding the data to dictionnary
-            scapefiles[basename(path)] = {
-                "path": path,
-                "date": getmtime(path),
-                "corners": amount_corners,
-                "voxels": amount_voxels,
-            }
-        # Return for extended version
-        root.debug("{} files returned with extended True".format(len(scapefiles)))
-        return scapefiles
-
-    else:
-        # Return
-        root.debug("{} files returned with extended False".format(len(candidates)))
-        return candidates
-
-
-# Print the townscaper saved files highlighting key information
-# max_amount: Number of files to be displayed at most, if None, there are no limits
-# args: cmd dictionary when print_scapefiles is used from Cmd
-def print_scapefiles(max_amount=5, args=None):
-
-    # Fill the end the input string with spaces according to a given length,
-    # if the string is bigger, it's truncated and ended with '...'
-    # Convert other type to str
-    def fill(string, length):
-
-        # Convert
-        if not isinstance(string, str):
-            string = str(string)
-
-        # Fill
-        if len(string) > length:
-            return string[: length - 3] + "..."
-
-        elif len(string) < length:
-            return string + " " * (length - len(string))
-
-        else:
-            return string
-
-    ####
-    # if full print : all columns are printed. Otherwise only file name and modification date are published
-    full_print = True
-
-    # Dealing with args
-    # No args means default settings are used otherwise the options are taken in charge
-    if args == {} or args is None:
-        pass
-    elif "input1" in args and args["input1"] in ("-a", "-all"):
-        max_amount = None
-
-    # Gather all saved files in a dictionary
-    scapefiles = list_scapefiles(extended=True)
-
-    # Case list_scapefiles failed
-    if scapefiles is None:
-        return
-
-    # Saving the length of list_scapefiles, useful for print outs
-    len_scapefiles = len(scapefiles)
-
-    # Fetch the max amount of characters for every column
-    max_len_name = max([len(name) for name in scapefiles])
-    max_len_corners = max(
-        [len(str(data["corners"])) for data in scapefiles.values()] + [len("corners")]
-    )
-    max_len_voxels = max(
-        [len(str(data["voxels"])) for data in scapefiles.values()] + [len("voxels")]
-    )
-
-    # Size of the column for dates
-    len_date_column = len(datetime.now().strftime(TIMESTAMP_FORMAT))
-
-    # Between each column there are 4 spaces
-    SPACES = "  |  "
-    len_SPACES = len(SPACES)
-
-    # Length of the full print
-    full_len = (
-        max_len_name
-        + len_SPACES
-        + len_date_column
-        + len_SPACES
-        + max_len_corners
-        + len_SPACES
-        + max_len_voxels
-    )
-    # Fetch the terminal size
-    max_columns = get_terminal_size(fallback=(80, 24))[0]
-    # Compare the length of the full print to the terminal size
-    if full_len < max_columns:
-        len_name_column = max_len_name
-        len_corners_column = max_len_corners
-        len_voxels_column = max_len_voxels
-
-    else:
-        # If the lenght of the files is too much for the terminal, the size of the field for File name is reduced
-        # Half of the terminal size is booked for the File name
-        len_name_column = round(max_columns / 2)
-
-        # Check that other field together do not take too much place. If it's too much full print is set to false
-        part_len = (
-            len_SPACES
-            + len_date_column
-            + len_SPACES
-            + max_len_corners
-            + len_SPACES
-            + max_len_voxels
-        )
-        if part_len > max_columns / 2:
-            full_print = False
-            full_len = len_name_column + len_SPACES + len_date_column
-
-        # Full print stay True
-        else:
-            len_corners_column = max_len_corners
-            len_voxels_column = max_len_voxels
-            full_len = (
-                len_name_column
-                + len_SPACES
-                + len_date_column
-                + len_SPACES
-                + len_corners_column
-                + len_SPACES
-                + len_voxels_column
-            )
-
-    # Handling of max_amount and Sort the files, default key is modification date
-    if max_amount is None:
-        scapefiles = sorted(
-            scapefiles.items(), key=lambda x: x[1]["date"], reverse=True
-        )
-    else:
-        scapefiles = sorted(
-            scapefiles.items(), key=lambda x: x[1]["date"], reverse=True
-        )[:max_amount]
-
-    # Print of the header
-    if full_print:
-        print(
-            "{0}{1}{2}{1}{3}{1}{4}".format(
-                fill("File Name", len_name_column),
-                SPACES,
-                fill("Last update", len_date_column),
-                fill("Corners", len_corners_column),
-                fill("Voxels", len_voxels_column),
-            )
-        )
-
-    else:
-        print(
-            "{0}{1}{2}".format(
-                fill("File Name", len_name_column),
-                SPACES,
-                fill("Last update", len_date_column),
-            )
-        )
-
-    # Line break
-    print("-" * full_len)
-
-    # Iteration on the dictionary items
-    for i, (name, file_data) in enumerate(scapefiles):
-
-        # Format of the date
-        date_last_update = datetime.fromtimestamp(file_data["date"])
-        date_last_update = date_last_update.strftime(TIMESTAMP_FORMAT)
-
-        if full_print is False:
-            print(
-                "{}{}{}".format(fill(name, len_name_column), SPACES, date_last_update)
-            )
-            continue
-
-        # Corners and voxels
-        amount_corners = file_data["corners"]
-        amount_voxels = file_data["voxels"]
-
-        # Print-out for full_print = True
-        print(
-            "{0}{1}{2}{1}{3}{1}{4}".format(
-                fill(name, len_name_column),
-                SPACES,
-                date_last_update,
-                fill(amount_corners, len_corners_column),
-                fill(amount_voxels, len_voxels_column),
-            )
-        )
-
-    # Line break
-    print("-" * full_len)
-
-    # Sum up of the file displayed
-    if max_amount is None:
-        nb_files_displayed = len_scapefiles
-    else:
-        nb_files_displayed = max_amount
-    print(
-        "{} saved file(s) // {} file(s) displayed".format(
-            len_scapefiles, nb_files_displayed
-        )
-    )
-
-    # Line break
-    print("-" * full_len)
-
-    # Return
-    return True
 
 
 # Initialize Townshell
@@ -498,6 +247,7 @@ def level_town(args):
     plain = False
     color = None
     color_filter = None
+    dictComp = {} #New arguments
     for key, arg in iter_args:
 
         # File to modify (char)
@@ -557,8 +307,16 @@ def level_town(args):
 
         # color_filter
         elif key in ("color_filter", "cf"):
-            if arg.isnumeric():
+            if arg == tuple():
+                color_filter = None
+            elif isinstance(arg, tuple):
+                color_filter = arg
+            elif arg.isnumeric():
                 color_filter = int(arg)
+
+        # Other arguments
+        else:
+            dictComp[key] = arg
 
     # Checking that height has been filled
     if height is None:
@@ -593,7 +351,7 @@ def level_town(args):
         )
     )
     corvox = level(
-        corvox, height, coord, max_height, min_height, plain, color, color_filter
+        corvox, height, coord, max_height, min_height, plain, color, color_filter, **dictComp
     )
 
     # Copy to clipboard
@@ -626,6 +384,7 @@ def paint_town(args):
     column = None
     coord = ()
     details = None
+    alternate = False
 
     for key, arg in iter_args:
 
@@ -685,6 +444,10 @@ def paint_town(args):
             elif "," in arg:
                 height = make_tuple(arg)
 
+        # Alternate
+        elif key == "alternate":
+            alternate = arg
+
         ###
         # Column, coord and Details are not implemented yet
         ###
@@ -710,7 +473,7 @@ def paint_town(args):
 
     # Painting of appropriate data
     root.debug(f"Settings : color :{color}, cf: {color_filter}, height: {height}")
-    corvox = paint(corvox, color, color_filter, height, column, coord, details)
+    corvox = paint(corvox, color, color_filter, height, column, coord, details, alternate)
 
     # Copy to clipboard
     new_clip = corvoxToClip(corvox)
@@ -728,7 +491,13 @@ def merge_town(args):
     root.debug(f"Input settings : {args}")
 
     toMerge = []
-    for i, arg in enumerate(args.values()):
+    op = '+' # Operator for merging
+    for i, (name, arg) in enumerate(args.items()):
+
+        # Operator
+        if name == 'op':
+            op = arg
+            continue
 
         # Checks that it's an actual clip
         if isClip(arg) is False:
@@ -745,7 +514,7 @@ def merge_town(args):
                 storeClip(arg)
 
     # Merging of dict
-    corvox = merge(*toMerge)
+    corvox = merge(op, *toMerge)
 
     # Copy to clipboard
     new_clip = corvoxToClip(corvox)
@@ -914,6 +683,8 @@ def dig_town(args):
     color_filter = None
     height = None
     percent = 1
+    maxhf = None
+    corner = False
 
     for key, arg in iter_args:
 
@@ -958,6 +729,14 @@ def dig_town(args):
             elif "," in arg:
                 height = make_tuple(arg)
 
+        # Corner
+        elif key == "corner":
+            corner = arg
+
+        # Max height filter
+        elif key == "maxhf":
+            maxhf = arg
+
     if char is None and lastClip == "":
 
         root.info("No valid clip from Townscaper")
@@ -978,7 +757,7 @@ def dig_town(args):
         return
 
     # Digging of appropriate data
-    corvox = dig(corvox, color_filter, percent, height)
+    corvox = dig(corvox, color_filter, percent, height, corner, maxhf)
 
     # Copy to clipboard
     new_clip = corvoxToClip(corvox)
@@ -1085,6 +864,76 @@ def write_town(**kwargs):
 
     return True
 
+# Return information about the lastClip
+def info_town(filters=None):
+
+    corvox = clipToCorvox(lastClip) if lastClip and isClip(lastClip) else None
+    if corvox:
+        stats = info(corvox, filters)
+        stats['timestamp'] = datetime.now().strftime(TIMESTAMP_FORMAT)
+        return stats
+    else:
+        return "No valid clip", datetime.now().strftime(TIMESTAMP_FORMAT)
+
+# Perform all operations for flipping the town
+# copy: "None" the town is just flipped, "Ground" a copy is flipped, leveled and merged with original, "Head" a copy is flipped and the original is leveled
+def flip_town(**kwargs):
+
+    root.debug(f"Input : {kwargs}")
+
+    copyMode = kwargs.get('copy')
+    copyMode = None if copyMode == 'None' else copyMode
+
+    color = kwargs.get('color', 14)
+    color = 14 if color == '' else int(color)
+
+    color_filter = kwargs.get('color_filter')
+    color_filter = None if color_filter == () else color_filter
+
+    if lastClip is None or isClip(lastClip) is False:
+        return
+    else:
+        char = lastClip
+
+    # The clip saved for undo/redo
+    storeClip(char)
+
+    # Corvox from clip
+    corvox = clipToCorvox(char)
+
+    if corvox is None:
+        return
+
+    # Copy mode
+    if copyMode:
+        copyCorvox = dictCopy(corvox)
+        copyStats = info(corvox)
+        if copyStats:
+            maxH = copyStats['max_height']
+        else:
+            return
+
+    if copyMode == 'Ground':
+        copyCorvox = level(copyCorvox, maxH, color=color, color_filter=color_filter)
+
+    # Flipping of appropriate data
+    corvox = flip(corvox, color , color_filter)
+
+    if copyMode == 'Head':
+        corvox = level(corvox, maxH, color=color, color_filter=color_filter)
+
+    # Final merging for copyMode
+    if copyMode:
+        corvox = merge('+', copyCorvox, corvox)
+
+    # Copy to clipboard
+    new_clip = corvoxToClip(corvox)
+
+    # Store the new clip
+    storeClip(new_clip)
+
+    # Success
+    return True
 
 # Store the clip
 def storeClip(clip):
@@ -1255,7 +1104,9 @@ def isClip(clip):
 
     try:
         bits = clipToBits(clip)
-        if bits and bitsToDense(bits):
+        denses = bitsToDense(bits)
+        sparses = denseToSparse(denses)
+        if bits and denses and sparses:
             return True
         else:
             return False
@@ -1571,6 +1422,47 @@ def doCapture(**kwargs):
     else:
         return answer
 
+# Fetch from a json the template for town spot
+def loadTempTown(path):
+
+    # Checks that the configuration file exists
+    if exists(path) is False:
+        root.error("{} does not exist.".format(path))
+        return
+
+    # Reads the configuration file and store the value in a dictionary
+    try:
+        dictTown = json.load(open(path))
+        root.debug("Output read :\n{}".format(dictTown))
+    except:
+        root.exception("Invalid format for {}".format(path))
+        return
+
+    # Dealing with pictures
+    picture = dictTown['picture']
+    dictTown['picture'] = exePath(picture) if exists(exePath(picture)) else ""
+
+    # Return
+    return dictTown
+
+# Gather all town spots and return a dictionary name vs dict
+def getSpots():
+    dictSpots = {}
+    with scandir(exePath("spots")) as it:
+        for entry in it:
+            base, ext = splitext(entry.name)
+            if ext == ".json":
+                spot = loadTempTown(entry.path)
+                if spot:
+                    dictSpots[spot['name']] = spot
+                else:
+                    root.debug(f"Bad file : {entry.path}")
+
+    # Sorting results
+    dictSpots = dict(sorted(dictSpots.items()))
+
+    return dictSpots
+
 
 # Utility class
 class Utility(object):
@@ -1580,6 +1472,11 @@ class Utility(object):
         self.mainQueue = None  # To receive from capture process
         self.synchro = None  # For capture and showcase
         self.manager = None
+
+        self.prev_clip = None # For clipInfo
+        self.clipInfo = None
+
+        self.dictSpots = None # For load
 
         self.init_core()
         self.shortcuts = print_shortcuts()
@@ -1632,6 +1529,10 @@ class Utility(object):
 
         # Part working with clip (level, paint, ...)
         init_townshell()
+
+        #Load requirement
+        self.dictSpots = getSpots()
+
         # Capture part
         (
             _,
@@ -1670,3 +1571,18 @@ class Utility(object):
     # Fetch templates
     def fetch_templates(self):
         return fetch_templates()
+
+    # Flip
+    def flip(self, **kwargs):
+        return flip_town(**kwargs)
+
+    # Infos
+    def info(self, _, **kwargs):
+
+        global lastClip
+
+        if lastClip != self.prev_clip:
+            self.clipInfo = info_town()
+            self.prev_clip = lastClip
+
+        return self.clipInfo

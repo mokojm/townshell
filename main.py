@@ -36,7 +36,10 @@ def main():
     from gui.replicate import ReplicateScreen
     from gui.capture import CaptureScreen
     from gui.write import WriteScreen
+    from gui.flip import FlipScreen
+    from gui.load import LoadScreen
     from kivy.app import App
+    from kivy.clock import Clock
     from kivy.core.text import LabelBase
     from kivy.core.window import Window
     from kivy.lang import Builder
@@ -52,6 +55,7 @@ def main():
         {
             "name": "Garamond",
             "fn_regular": "gui\\Garamond Regular.ttf",
+            "fn_bold": "gui\\Garamond Bold.ttf"
         }
     ]
 
@@ -67,6 +71,10 @@ def main():
         title = "TownShell"
 
         def build(self):
+
+            #Starts clock for statistics
+            Clock.schedule_interval(self.util.info, 1)
+
             return Builder.load_file(r"gui\screenmanager.kv")
 
     # Main part

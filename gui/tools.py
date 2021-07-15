@@ -132,8 +132,7 @@ class BoxColor(FloatLayout):
         if any([child.text in ("R", "") for child in self.children]):
             return
         else:
-            self.add_widget(
-                ColorSpinner(
+            cSpinner = ColorSpinner(
                     pos_hint={
                         "x": self.add_button.pos_hint["x"],
                         "center_y": self.add_button.pos_hint["center_y"],
@@ -141,11 +140,12 @@ class BoxColor(FloatLayout):
                     size=(30, 30),
                     values=self.values,
                 )
-            )
+            self.add_widget(cSpinner)
             self.add_button.pos_hint = {
                 "x": self.add_button.pos_hint["x"] + 0.2,
                 "center_y": self.add_button.pos_hint["center_y"],
             }
+            cSpinner.trigger_action()
 
         #Complementary function
         self.addCompFunc()
@@ -160,6 +160,16 @@ class BoxColor(FloatLayout):
 
         #Complementary function
         self.delCompFunc()
+
+    def reset(self):
+        for child in self.children[:]:
+            if 'colspin' in child.name:
+                self.remove_widget(child)
+                self.add_button.pos_hint = {
+                "x": self.add_button.pos_hint["x"] - 0.2,
+                "center_y": self.add_button.pos_hint["center_y"],
+                }
+
 
 
 class BoxUpDown(FloatLayout):
@@ -241,3 +251,73 @@ class BoxHeightFilter(FloatLayout):
 
         if self.hfe.value < self.hfs.value:
             self.hfs.value = self.hfe.value
+
+
+class BoxClipInfo(FloatLayout):
+
+    def __init__(self, **kwargs):
+        self.util = App.get_running_app().util
+        super(BoxClipInfo, self).__init__(**kwargs)
+
+        Clock.schedule_interval(self.update, 1)
+
+    def update(self, _):
+        if self.util.clipInfo is None:
+            self.timest.text = 'No valid clip'
+            self.corner.text = ''
+            self.voxel.text = ''
+            self.maxh.text = ''
+
+        elif isinstance(self.util.clipInfo, tuple):
+            self.timest.text = self.util.clipInfo[1]
+            self.corner.text = self.util.clipInfo[0]
+            self.voxel.text = ''
+            self.maxh.text = ''
+
+        else:
+            self.timest.text = self.util.clipInfo['timestamp']
+            self.corner.text = f"[u]corners[/u] : {self.util.clipInfo['nb_corners']}"
+            self.voxel.text = f"[u]voxels[/u] : {self.util.clipInfo['nb_voxels']}"
+            self.maxh.text = f"[u]max height[/u] : {self.util.clipInfo['max_height']}"
+
+
+    def statShow(self):
+
+        myText = """TimeStamp : {timestamp}
+
+Amount of corners : {nb_corners}
+Amount of voxels : {nb_voxels}
+
+Maximum height : {max_height}
+Minimum height : {min_height}
+Average height : {mean_height}
+Most used height : {1st_height}
+2nd most used height : {2nd_height}
+Max amount of voxels on 1 corner : {max_nb_height} 
+
+Amount of used colors : {nb_colors}
+Average color : {mean_color}
+Average amount of color on 1 corner : {mean_col_vs_cor}
+Max amount of color on 1 corner : {max_col_vs_cor}
+Most used color : {1st_color}
+2nd most used color : {2nd_color}
+Least used color : {least_color}
+
+Amount of ground only corners : {ground_only}
+Corners without ground voxel : {no_ground}
+
+Center coordinates : {mean_x}, {mean_y}"""
+        
+        if isinstance(self.util.clipInfo, dict):
+            for key, value in self.util.clipInfo.items():
+                myText = myText.replace("{"+key+"}", str(round(value, 1)) if isinstance(value, float) else str(value))
+            fileName = self.util.clipInfo['timestamp'].replace("/","").replace(":","-")
+        else:
+            myText = "I guess you were expecting something so here is a happy face *(^_^)*"
+            fileName = 'nothing.txt'
+
+        #Creating the PopUp
+        myPopUp = Factory.StatPopUp()
+        myPopUp.mytext = myText
+        myPopUp.fileName = fileName
+        myPopUp.open()

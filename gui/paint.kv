@@ -7,6 +7,7 @@
 	box_color: box_color
 	box_filter: box_filter
 	box_hf: box_hf
+    box_alt: box_alt
 	image: image
 
     FloatLayout:
@@ -32,6 +33,12 @@
         	pos_hint: {"x":0.05, "y":0.55}
         	size_hint: 0.4, 0.06
 
+        BoxPlain:
+            id: box_alt
+            pos_hint: {"x":0.05, "y":0.45}
+            size_hint: 0.25, 0.03  
+            myText: "Alternate" 
+
         TownButton:
             normal_color: 0.953, 0.890, 0.714, 1
             down_color: 1, 1, 0.714, 1
@@ -43,8 +50,7 @@
             my_text: "Save to Clipboard"
 
         BoxUndoRedo:
-            pos_hint: {"x":0.02, "y":0.88}
-            size_hint: 0.25, 0.1
+            reset: root.reset
 
         Image:
         	id: image
@@ -54,6 +60,7 @@
                 Demop["color"] if box_color.mouse else \
                 Demop["filter"] if box_filter.mouse else \
                 Demop["hf"] if box_hf.mouse else \
+                "Pictures\\Paint_Alternate.png" if box_alt.mouse else \
                 Demop["color"]
 
         TownButton:
@@ -66,4 +73,4 @@
             	root.manager.current = 'menu'
             my_text: "Back"
 
-
+        BoxClipInfo:

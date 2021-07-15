@@ -43,6 +43,15 @@ class CaptureScreen(Screen):
             myPopUp.mytext = answer
             myPopUp.open()
 
+    def reset(self):
+        self.box_fps.fps.value = 30
+        self.box_butt.butt.text = self.box_butt.butt.values[0]
+        self.box_dur.dur.value = 5
+        self.box_dist.dist.value = 500
+        self.box_ang.ang.value = 0
+        self.box_ryt.ryth.text = self.box_ryt.ryth.values[0]
+        self.box_spos.spos.text = self.box_spos.spos.values[0]
+
     def capture(self, dryrun=False):
 
         target_fps = int(self.box_fps.fps.value)

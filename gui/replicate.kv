@@ -118,8 +118,7 @@
             my_text: "Save to Clipboard"
 
         BoxUndoRedo:
-            pos_hint: {"x":0.02, "y":0.88}
-            size_hint: 0.25, 0.1
+            reset: root.reset
 
         TownButton:
             normal_color: 1, 0.702, 0.682, 1
@@ -131,7 +130,7 @@
                 root.manager.current = 'menu'
             my_text: "Back"
 
-
+        BoxClipInfo:
 
         
 

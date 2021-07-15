@@ -2,6 +2,7 @@
 #:import Factory kivy.factory.Factory
 #:import Window kivy.core.window.Window
 #:import choice random.choice
+#:import Animation kivy.animation.Animation
 
 #:set Backgrounds ("Pictures\\Back1.png", "Pictures\\Back2.png", "Pictures\\Back3.png")
 
@@ -128,7 +129,8 @@
 
 <MenuScreen>:
     
-    sy: 0.09 #size_hint_y
+    sy: 0.08 #size_hint_y
+    myIm: myIm
 
     FloatLayout:
         pos: 0,0
@@ -139,14 +141,22 @@
             normal_color: 1, 0.702, 0.682, 1
             down_color: 1, 0.902, 0.882, 1
             size_hint: (0.2, root.sy)
-            pos_hint: {"center_x":0.15, "center_y":0.15}
+            pos_hint: {"center_x":0.15, "center_y":0.09}
             on_release:
                 app.stop()
             my_text: "Quit"
 
         TownButton:
             size_hint: (0.2, root.sy)
-            pos_hint: {"center_x":0.15, "center_y":0.26}
+            pos_hint: {"center_x":0.15, "center_y":0.18}
+            on_release: 
+                if root.manager != None: root.manager.transition.direction = 'left'; 
+                root.manager.current = 'flip'
+            my_text: "Flip"
+
+        TownButton:
+            size_hint: (0.2, root.sy)
+            pos_hint: {"center_x":0.15, "center_y":0.27}
             on_release: 
                 if root.manager != None: root.manager.transition.direction = 'up'; 
                 root.manager.current = 'write'
@@ -154,7 +164,7 @@
 
         TownButton:
             size_hint: (0.2, root.sy)
-            pos_hint: {"center_x":0.15, "center_y":0.37}
+            pos_hint: {"center_x":0.15, "center_y":0.36}
             on_release: 
                 if root.manager != None: root.manager.transition.direction = 'down'; 
                 root.manager.current = 'capture'
@@ -162,7 +172,7 @@
 
         TownButton:
             size_hint: (0.2, root.sy)
-            pos_hint: {"center_x":0.15, "center_y":0.48}
+            pos_hint: {"center_x":0.15, "center_y":0.45}
             on_release: 
                 if root.manager != None: root.manager.transition.direction = 'up'; 
                 root.manager.current = 'merge'
@@ -170,7 +180,7 @@
 
         TownButton:
             size_hint: (0.2, root.sy)
-            pos_hint: {"center_x":0.15, "center_y":0.59}
+            pos_hint: {"center_x":0.15, "center_y":0.54}
             on_release: 
                 if root.manager != None: root.manager.transition.direction = 'up'; 
                 root.manager.current = 'replicate'
@@ -178,7 +188,7 @@
 
         TownButton:
             size_hint: (0.2, root.sy)
-            pos_hint: {"center_x":0.15, "center_y":0.70}
+            pos_hint: {"center_x":0.15, "center_y":0.63}
             on_release: 
                 if root.manager != None: root.manager.transition.direction = 'down'; 
                 root.manager.current = 'dig'
@@ -186,7 +196,7 @@
 
         TownButton:
             size_hint: (0.2, root.sy)
-            pos_hint: {"center_x":0.15, "center_y":0.81}
+            pos_hint: {"center_x":0.15, "center_y":0.72}
             on_release: 
                 if root.manager != None: root.manager.transition.direction = 'right'; 
                 root.manager.current = 'paint'
@@ -194,11 +204,19 @@
 
         TownButton:
             size_hint: (0.2, root.sy)
-            pos_hint: {"center_x":0.15, "center_y":0.92}
+            pos_hint: {"center_x":0.15, "center_y":0.81}
             on_release: 
                 if root.manager != None: root.manager.transition.direction = 'left'; 
                 root.manager.current = 'level'
             my_text: "Level"
+
+        TownButton:
+            size_hint: (0.2, root.sy)
+            pos_hint: {"center_x":0.15, "center_y":0.90}
+            on_release: 
+                if root.manager != None: root.manager.transition.direction = 'right'; 
+                root.manager.current = 'load'
+            my_text: "Load"
 
         Image:
             source: "Pictures\\TownShell_title.png"
@@ -207,9 +225,14 @@
 
 
         Image:
+            id: myIm
+            mousepos: Window.mouse_pos
+            mouse: True if self.collide_point(self.mousepos[0],self.mousepos[1]) else False
             source: choice(Backgrounds)
             size_hint: (0.6, 0.6)
             pos_hint: {'center_x':0.7, 'y':0.25}
+            on_touch_up: 
+                root.changeIm()
 
         KeyboardShortcuts:
             size_hint: 0.25, 0.06

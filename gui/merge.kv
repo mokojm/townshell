@@ -51,6 +51,21 @@
             clip_text.text = Clipboard.paste()
             root.checkClip()
 
+<BoxOperator@FloatLayout>:
+    mousepos: Window.mouse_pos
+    mouse: True if self.collide_point(root.mousepos[0],root.mousepos[1]) else False
+    ope: ope
+    MyLabel:
+        pos_hint: {'x':0, 'center_y':0.5}
+        size_hint: 0.45, None
+        text: "Operator"
+
+    TextSpinner:
+        id: ope
+        pos_hint: {'right': 1, 'center_y':0.5}
+        size_hint: 0.57, 1
+        text_autoupdate: True
+        values: ['Add (+)', 'Substract (-)', 'Intersection (&)', 'Exclusive (^)']
 
 
 <MergeScreen>:
@@ -58,6 +73,7 @@
 	add: add
 	delb: delb
     boxclip: boxclip
+    box_ope: box_ope
 
     FloatLayout:
         pos: 0,0
@@ -68,12 +84,17 @@
             pos_hint: {"x":0.02, "y":0.75}
             size_hint: 0.5, 0.1
 
-        BoxClip:
+        BoxOperator:
+            id: box_ope
             pos_hint: {"x":0.02, "y":0.65}
+            size_hint: 0.35, 0.06
+
+        BoxClip:
+            pos_hint: {"x":0.02, "y":0.53}
             size_hint: 0.5, 0.1
 
         AddButton:
-            pos_hint: {"x":0.02, "y":0.55}
+            pos_hint: {"x":0.02, "y":0.45}
             id: add
             name: 'add'
             size_hint: (None, None)
@@ -101,17 +122,18 @@
             my_text: "Save to Clipboard"
 
         BoxUndoRedo:
-            pos_hint: {"x":0.02, "y":0.88}
-            size_hint: 0.25, 0.1
+            reset: root.reset
 
         Image:
             pos_hint: {"x": 0.50, "y":0.4}
             size_hint: 0.55, 0.55
-            source: "Pictures\\Merge.png"
-        #         Demop["color"] if box_color.mouse else \
-        #         Demop["filter"] if box_filter.mouse else \
-        #         Demop["hf"] if box_hf.mouse else \
-        #         Demop["color"]
+            source: 
+                "Pictures\\Merge_add.png" if "+" in box_ope.ope.text else \
+                "Pictures\\Merge_substract.png" if "-" in box_ope.ope.text else \
+                "Pictures\\Merge_intersect.png" if "&" in box_ope.ope.text else \
+                "Pictures\\Merge_exclusive.png" if "^" in box_ope.ope.text else \
+                "Pictures\\Merge_add.png"
+
 
         TownButton:
             normal_color: 1, 0.702, 0.682, 1
@@ -123,4 +145,5 @@
             	root.manager.current = 'menu'
             my_text: "Back"
 
+        BoxClipInfo:
 

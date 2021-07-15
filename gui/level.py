@@ -28,12 +28,24 @@ class LevelScreen(Screen):
             self.box_max.max_height.value = self.box_height.myheight.value
 
     def save_to_clipboard(self):
+
+        filters = tuple(
+            int(child.text)
+            for child in self.box_fc.children
+            if child.name == "colspin" and child.text != ""
+        )
+
+        hfs = int(self.box_hf.hfs.value)
+        hfe = int(self.box_hf.hfe.value)
+        hf_filter = hfs if hfs == hfe else (hfs, hfe)
+
         settings = {
             "height": int(self.box_height.myheight.value),
             "plain": self.box_plain.myplain.active,
-            "maxh": int(self.box_max.max_height.value),
-            "minh": int(self.box_min.min_height.value),
-            "cf": self.box_fc.myfc.text,
+            "ground_only": True if self.box_opt.opt.text == 'Ground only' else False,
+            "smart": True if self.box_opt.opt.text == 'Smart' else False,
+            "height_filter": hf_filter,
+            "cf": filters,
             "color": self.box_newc.mync.text,
         }
 
@@ -46,3 +58,12 @@ class LevelScreen(Screen):
             myPopUp.level = "ERROR"
             myPopUp.mytext = "See 'town.log' for more information"
         myPopUp.open()
+
+    def reset(self):
+        self.box_height.myheight.value =0
+        self.box_newc.mync.text = ""
+        self.box_plain.myplain.active = False
+        self.box_opt.opt.text = 'None'
+        self.box_hf.hfs.value = 0
+        self.box_hf.hfe.value = 255
+        self.box_fc.reset()

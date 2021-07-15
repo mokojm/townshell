@@ -44,7 +44,7 @@ class MergeScreen(Screen):
             self.amountBoxClip += 1
 
     def del_boxclip(self):
-        for child in self.children:
+        for child in self.children[:]:
             if isinstance(child, BoxClip):
                 self.remove_widget(child)
                 self.add.pos_hint = {
@@ -53,6 +53,7 @@ class MergeScreen(Screen):
                 }
                 self.amountBoxClip -= 1
                 break
+
 
     def save_to_clipboard(self):
 
@@ -74,6 +75,7 @@ class MergeScreen(Screen):
                 for i, child in enumerate(self.walk(loopback=True))
                 if isinstance(child, BoxClip)
             }
+            settings['op'] = self.box_ope.ope.text[-2]
 
             #print(settings)
             if self.util.merge(settings):
@@ -83,3 +85,23 @@ class MergeScreen(Screen):
                 myPopUp.level = "ERROR"
                 myPopUp.mytext = "See 'town.log' for more information"
             myPopUp.open()
+
+    def reset(self):
+
+        #Deleting widget
+        count = 0
+        for child in self.walk(loopback=True):
+            if isinstance(child, BoxClip):
+                count += 1
+                child.boxclip.text = ""
+
+                if count > 2:
+                    self.remove_widget(child)
+                    self.add.pos_hint = {
+                        "x": self.add.pos_hint["x"],
+                        "y": self.add.pos_hint["y"] + 0.1,
+                    }
+                    self.amountBoxClip -= 1
+
+        #reset operator
+        self.box_ope.ope.text = self.box_ope.ope.values[0]

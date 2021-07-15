@@ -148,7 +148,6 @@
             rounded_rectangle: self.x+2, self.y+3, self.rect_size[0], self.rect_size[1], self.button_radius
 
 <TextSpinnerOption@SpinnerOption>:
-
     background_color: 1,1,1,0 # the last zero is the critical on, make invisible
     button_radius: 5
     size_hint: 1, None
@@ -157,6 +156,7 @@
     font_name: 'Garamond'
     font_size: 24
     color: 0,0,0,1
+
     canvas.before:
         Color:
             rgba: 0.894, 0.882, 0.85, 1  #Color of the background
@@ -266,16 +266,18 @@
     colevel: {"INFO": (0.78, 0.953, 0.714, 1), "WARNING":(0.953, 0.553, 0.357,1), "ERROR":(1, 0.702, 0.682, 1)}
     radius: 10
 
-    opacity: 1
+    opacity: 0
     anim1: Animation(opacity=0, pos_hint={'center_x':0.23, 'center_y':0.11}, duration=2, t='out_circ')
     anim2: Animation(opacity=0, duration=5, t='out_circ')
+    anim3: Animation(opacity=1, pos_hint={'center_x':0.205, 'center_y':0.11}, duration=0.3, t='out_circ')
     on_open:
         self.focus = False
+        self.anim3.start(self)
         Clock.schedule_once(lambda dt: self.anim1.start(self), 2)
         Clock.schedule_once(self.dismiss, 4)
     
     size_hint: .4, .2
-    pos_hint: {'center_x':0.205, 'center_y':0.11}
+    pos_hint: {'center_x':-0.205, 'center_y':0.11}
     auto_dismiss: True
     
     title_color: 0, 0, 0, 1
@@ -301,6 +303,9 @@
 <BoxUndoRedo>:
     orientation: 'horizontal'
     spacing: 10
+    pos_hint: {"x":0.02, "y":0.88}
+    size_hint: 0.38, 0.1
+    reset: lambda: None
     TownButton:
         normal_color: 0.714, 0.827, 0.953, 1
         down_color: 0.714, 0.9, 1, 1
@@ -312,6 +317,12 @@
         down_color: 0.714, 0.9, 1, 1
         on_release: root.redo()
         my_text: "Redo"
+
+    TownButton:
+        normal_color: 0,0,0,0.1
+        down_color: 0,0,0,0
+        on_release: root.reset()
+        my_text: "Reset"
 
 <AddButton@Button>:
     background_color: 1,1,1,0
@@ -382,6 +393,7 @@
     mync: nc
     mousepos: Window.mouse_pos
     mouse: True if self.collide_point(root.mousepos[0],root.mousepos[1]) else False
+    default_value: ""
     MyLabel:
         pos_hint: {'x':0, 'center_y':0.5}
         size_hint: 0.5, None
@@ -392,6 +404,7 @@
         pos_hint: {'x':0.6, 'y':0}
         size_hint: 0.4, None
         size:0,30
+        text: root.default_value
 
 <BoxPlain@FloatLayout>:
     myplain: plain_check
@@ -408,7 +421,7 @@
         size_hint: (0.5, None)
         id: plain_check
         color: 0,0,0,1
-        height: '48dp'
+        height: '60dp'
 
 <BoxHeight@FloatLayout>:
     myheight: height_slide
@@ -434,12 +447,13 @@
 <BoxHeightFilter>:
     mousepos: Window.mouse_pos
     mouse: True if self.collide_point(root.mousepos[0],root.mousepos[1]) else False
+    myText: "Height filter"
     hfe: hfe  #Height filter end
     hfs: hfs  #Height filter start
     MyLabel:
         pos_hint: {'x':0, 'center_y':0.5}
-        size_hint: 0.25, None
-        text: "Height filter"
+        size_hint: 0.24, None
+        text: root.myText
 
     BoxUpDown:
         id: hfs
@@ -460,3 +474,115 @@
         size_hint: 0.25, 1
         downrelease: root.hfeDownRelease
         myTextCheck: root.hfeDownRelease
+
+<MyClipLabel@MyLabel>:
+    size_hint: 0.25, None
+    text: ''
+    color: 0,0,0,0.8
+    font_size: Window.height * 0.03
+    markup: True
+
+<BoxClipInfo>:
+    pos_hint: {"x":0.02, "y":0.007}
+    size_hint: 0.85, 0.06  
+    
+    mousepos: Window.mouse_pos
+    mouse: True if self.collide_point(root.mousepos[0],root.mousepos[1]) else False
+
+    timest: timest
+    corner: corner
+    voxel: voxel
+    maxh: maxh
+
+    AddButton:
+        id: add
+        name: 'add'
+        pos_hint: {'x':0, 'center_y': 0.5}
+        size_hint: (None, None)
+        size: 20, 20
+        on_release: root.statShow()
+        text: "+"
+
+    MyClipLabel:
+        id: timest
+        pos_hint: {'x':0.05, 'center_y':0.5}
+
+
+    MyClipLabel:
+        id: corner
+        pos_hint: {'x':0.3, 'center_y':0.5}
+
+
+    MyClipLabel:
+        id: voxel
+        pos_hint: {'x':0.5, 'center_y':0.5}
+
+
+    MyClipLabel:
+        id: maxh
+        pos_hint: {'x':0.7, 'center_y':0.5}
+
+<StatPopUp@Popup>:
+    id:pop
+    title: 'Stats'
+    mytext: ""
+    fileName: ''
+    radius: 10
+
+    opacity: 0
+    anim1: Animation(opacity=1, pos_hint={'center_x':0.5, 'center_y':0.5}, size_hint=(1,1) , duration=0.3, t='out_circ')
+    anim2: Animation(opacity=0, pos_hint={'center_x':0, 'center_y':0},  size_hint=(0,0) , duration=0.3, t='out_circ')
+    on_open:
+        self.focus = True
+        self.anim1.start(self)
+
+    on_dismiss:
+        self.anim2.start(self)
+    
+    size_hint: 0, 0
+    pos_hint: {'center_x':0, 'center_y':0}
+    auto_dismiss: True
+    
+    title_color: 0, 0, 0, 1
+    title_font: 'Garamond'
+    title_size: Window.height * 0.03
+    background: "Pictures\\empty.png"
+    background_color: (0, 0, 0, 0)
+    separator_color: 0, 0, 0, 1
+
+    canvas.before:
+
+        Color:
+            rgba: (0.798, 0.743, 0.716, 1)
+
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [self.radius,]
+
+    FloatLayout:
+        pos: 0,0
+        size: root.width, root.height
+
+        MyLabel:
+            font_size: Window.height * 0.027
+            text: root.mytext
+            pos_hint: {"x": 0.02, "y":0}
+
+        TownButton:
+            normal_color: 1, 0.702, 0.682, 1
+            down_color: 1, 0.902, 0.882, 1
+            size_hint: (0.2, 0.1)
+            pos_hint: {"center_x":0.88, "center_y":0.07}
+            on_release: root.dismiss()
+            my_text: "Back"  
+
+        TownButton:
+            normal_color: 0.714, 0.827, 0.953, 1
+            down_color: 0.714, 0.9, 1, 1
+            disabled: True if root.fileName == "nothing.txt" else False
+            opacity: 0 if self.disabled else 1
+            size_hint: (0.2, 0.1)
+            pos_hint: {"center_x":0.88, "center_y":0.22}
+            on_release: print(root.mytext, file=open(f"{root.fileName}.txt", 'w'))
+            my_text: "Export" 

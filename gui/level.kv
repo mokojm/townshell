@@ -1,5 +1,6 @@
-#:set Demo {"height": "Pictures\\Height.png", "plain": "Pictures\\Plain.png", "maxh": "Pictures\\MaxHeight.png", "minh": "Pictures\\MinHeight.png", "cf": "Pictures\\Color_filter.png", "nblocks": "Pictures\\Color_new_blocks.png"}
+#:set Demo {"height": "Pictures\\Height.png", "option": "Pictures\\Level_Opt.png", "hf": "Pictures\\Level_hf.png", "plain": "Pictures\\Plain.png", "maxh": "Pictures\\MaxHeight.png", "minh": "Pictures\\MinHeight.png", "cf": "Pictures\\Color_filter.png", "nblocks": "Pictures\\Color_new_blocks.png"}
 #: import Window kivy.core.window.Window
+#:import ew kivy.uix.effectwidget
 
 <BoxMaxHeight@FloatLayout>:
     mousepos: Window.mouse_pos
@@ -40,54 +41,65 @@
         uprelease: root.uprelease
         myTextCheck: root.myTextCheck
 
+<BoxOption@FloatLayout>:
+    mousepos: Window.mouse_pos
+    mouse: True if self.collide_point(root.mousepos[0],root.mousepos[1]) else False
+    opt: opt
+    MyLabel:
+        pos_hint: {'x':0, 'center_y':0.5}
+        size_hint: 0.45, None
+        text: "Option"
+
+    TextSpinner:
+        id: opt
+        pos_hint: {'right': 1, 'center_y':0.5}
+        size_hint: 0.55, 1
+        text_autoupdate: True
+        values: ['None', 'Ground only', 'Smart']
+
 <LevelScreen>:
-    box_min: box_min
-    box_max: box_max
     box_newc: box_newc
     box_fc: box_fc
     box_plain: box_plain
+    box_opt: box_opt
     box_height: box_height
+    box_hf: box_hf
 
     FloatLayout:
         pos: 0,0
-        size: root.width, root.height          
-
-        BoxNewColor:
-            id: box_newc
-            pos_hint: {"x":0.05, "y":0.20}
-            size_hint: 0.2, 0.03
-
-        BoxFilterColor:
-            id: box_fc
-            pos_hint: {"x":0.05, "y":0.33}
-            size_hint: 0.2, 0.03
-
-        BoxMinHeight:
-        	id: box_min
-        	pos_hint: {"x":0.05, "y":0.45}
-        	size_hint: 0.2, 0.06
-            uprelease: root.minHeightCheck
-            myTextCheck: root.minHeightCheck
-
-        BoxMaxHeight:
-        	id: box_max
-        	pos_hint: {"x":0.05, "y":0.55}
-        	size_hint: 0.2, 0.06
-            downrelease: root.maxHeightCheck
-            myTextCheck: root.maxHeightCheck
+        size: root.width, root.height
+        BoxHeight:
+            id: box_height
+            pos_hint: {"x":0.05, "y":0.75}
+            size_hint: 0.2, 0.06  
 
         BoxPlain:
             id: box_plain
-        	pos_hint: {"x":0.05, "y":0.65}
-        	size_hint: 0.2, 0.03
-        
-        BoxHeight:
-            id: box_height
-        	pos_hint: {"x":0.05, "y":0.75}
-        	size_hint: 0.2, 0.06
-            uprelease: root.heightCheck
-            downrelease: root.heightCheck
-            myTextCheck: root.heightCheck
+            pos_hint: {"x":0.05, "y":0.65}
+            size_hint: 0.2, 0.03
+
+        BoxOption:
+            id: box_opt
+            pos_hint: {"x":0.05, "y":0.55}
+            size_hint: 0.3, 0.06        
+
+        BoxNewColor:
+            id: box_newc
+            pos_hint: {"x":0.05, "y":0.45}
+            size_hint: 0.2, 0.06
+            default_value: "14"
+
+        BoxColor:
+            id: box_fc
+            values: ["", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14"]
+            myText: 'Filter :'
+            pos_hint: {"x":0.05, "y":0.35}
+            size_hint: 0.2, 0.03
+
+        BoxHeightFilter:
+            id: box_hf
+            pos_hint: {"x":0.05, "y":0.23}
+            size_hint: 0.4, 0.06
 
 
         Image:
@@ -96,10 +108,10 @@
             source: 
                 Demo["height"] if box_height.mouse else \
                 Demo["plain"] if box_plain.mouse else \
-                Demo["maxh"] if box_max.mouse else \
-                Demo["minh"] if box_min.mouse else \
                 Demo["cf"] if box_fc.mouse else \
                 Demo["nblocks"] if box_newc.mouse else \
+                "Pictures\\Level_hf.png" if box_hf.mouse else \
+                "Pictures\\Level_Opt.png" if box_opt.mouse else \
                 Demo["height"]   
 
         TownButton:
@@ -111,8 +123,7 @@
             my_text: "Save to Clipboard"
 
         BoxUndoRedo:
-            pos_hint: {"x":0.02, "y":0.88}
-            size_hint: 0.25, 0.1
+            reset: root.reset
 
         TownButton:
             normal_color: 1, 0.702, 0.682, 1
@@ -123,6 +134,8 @@
                 if root.manager != None: root.manager.transition.direction = "right"; 
                 root.manager.current = 'menu'
             my_text: "Back"
+
+        BoxClipInfo:
 
 
 

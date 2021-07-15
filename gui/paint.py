@@ -33,7 +33,7 @@ class PaintScreen(Screen):
         hfe = int(self.box_hf.hfe.value)
         hf_filter = hfs if hfs == hfe else ((hfs, hfe),)
 
-        settings = {"color": colors, "cf": filters, "height": hf_filter}
+        settings = {"color": colors, "cf": filters, "height": hf_filter, "alternate":self.box_alt.myplain.active}
         #print(settings)
 
         myPopUp = Factory.NotifPopUp()
@@ -45,3 +45,10 @@ class PaintScreen(Screen):
             myPopUp.level = "ERROR"
             myPopUp.mytext = "See 'town.log' for more information"
         myPopUp.open()
+
+    def reset(self):
+        self.box_alt.myplain.active = False
+        self.box_hf.hfs.value = 0
+        self.box_hf.hfe.value = 255
+        self.box_color.reset()
+        self.box_filter.reset()

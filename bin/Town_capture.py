@@ -95,9 +95,9 @@ class TownCapture:
         root.debug("Screenshot taken")
         return img
 
-    def _grab(self):
+    def _grab(self, raw=True):
 
-        img = self.sct.grab(self.sct.window, raw=True)
+        img = self.sct.grab(self.sct.window, raw)
 
         # This makes sure that the FPS are taken in comparison to screenshots rates and vary only slightly.
         self._time_taken, self._time_start = time() - self._time_start, time()
