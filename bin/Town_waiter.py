@@ -12,8 +12,7 @@ from glob import glob
 from logging import getLogger
 from multiprocessing import Manager, Process, Queue
 from os import environ, mkdir, remove, scandir
-from os.path import (abspath, basename, dirname, exists, getmtime, isdir, join,
-                     splitext)
+from os.path import abspath, basename, dirname, exists, getmtime, isdir, join, splitext
 from queue import Empty
 from random import choice
 from shutil import copy2, get_terminal_size, move
@@ -45,21 +44,21 @@ TITLE = r"""
 
 # All available colors
 ALLCOLORS = {
-    0:  {"name": "red",             "coord":(0.925, 0.267, 0.267)},
-    1:  {"name": "orange",          "coord":(0.953, 0.553, 0.357)},
-    2:  {"name": "yellow",          "coord":(0.953, 0.839, 0.400)},
-    3:  {"name": "yellow_green",    "coord":(0.851, 0.914, 0.463)},
-    4:  {"name": "light_green",     "coord":(0.675, 0.765, 0.486)},
-    5:  {"name": "grass_green",     "coord":(0.518, 0.839, 0.384)},
-    6:  {"name": "green",           "coord":(0.271, 0.812, 0.439)},
-    7:  {"name": "green_blue",      "coord":(0.286, 0.784, 0.647)},
-    8:  {"name": "blue",            "coord":(0.286, 0.729, 0.812)},
-    9:  {"name": "deep_blue",       "coord":(0.325, 0.604, 1)},
-    10: {"name": "purple",          "coord":(0.447, 0.475, 0.812)},
-    11: {"name": "mauve",           "coord":(0.725, 0.341, 0.459)},
-    12: {"name": "beige",           "coord":(0.812, 0.667, 0.549)},
-    13: {"name": "brown_gray",      "coord":(0.698, 0.643, 0.616)},
-    14: {"name": "white",           "coord":(0.871, 0.871, 0.871)}
+    0: {"name": "red", "coord": (0.925, 0.267, 0.267)},
+    1: {"name": "orange", "coord": (0.953, 0.553, 0.357)},
+    2: {"name": "yellow", "coord": (0.953, 0.839, 0.400)},
+    3: {"name": "yellow_green", "coord": (0.851, 0.914, 0.463)},
+    4: {"name": "light_green", "coord": (0.675, 0.765, 0.486)},
+    5: {"name": "grass_green", "coord": (0.518, 0.839, 0.384)},
+    6: {"name": "green", "coord": (0.271, 0.812, 0.439)},
+    7: {"name": "green_blue", "coord": (0.286, 0.784, 0.647)},
+    8: {"name": "blue", "coord": (0.286, 0.729, 0.812)},
+    9: {"name": "deep_blue", "coord": (0.325, 0.604, 1)},
+    10: {"name": "purple", "coord": (0.447, 0.475, 0.812)},
+    11: {"name": "mauve", "coord": (0.725, 0.341, 0.459)},
+    12: {"name": "beige", "coord": (0.812, 0.667, 0.549)},
+    13: {"name": "brown_gray", "coord": (0.698, 0.643, 0.616)},
+    14: {"name": "white", "coord": (0.871, 0.871, 0.871)},
 }
 
 # Boolean to know whether Keyboard shortcuts are active or not
@@ -247,7 +246,7 @@ def level_town(args):
     plain = False
     color = None
     color_filter = None
-    dictComp = {} #New arguments
+    dictComp = {}  # New arguments
     for key, arg in iter_args:
 
         # File to modify (char)
@@ -351,7 +350,15 @@ def level_town(args):
         )
     )
     corvox = level(
-        corvox, height, coord, max_height, min_height, plain, color, color_filter, **dictComp
+        corvox,
+        height,
+        coord,
+        max_height,
+        min_height,
+        plain,
+        color,
+        color_filter,
+        **dictComp,
     )
 
     # Copy to clipboard
@@ -473,7 +480,9 @@ def paint_town(args):
 
     # Painting of appropriate data
     root.debug(f"Settings : color :{color}, cf: {color_filter}, height: {height}")
-    corvox = paint(corvox, color, color_filter, height, column, coord, details, alternate)
+    corvox = paint(
+        corvox, color, color_filter, height, column, coord, details, alternate
+    )
 
     # Copy to clipboard
     new_clip = corvoxToClip(corvox)
@@ -491,11 +500,11 @@ def merge_town(args):
     root.debug(f"Input settings : {args}")
 
     toMerge = []
-    op = '+' # Operator for merging
+    op = "+"  # Operator for merging
     for i, (name, arg) in enumerate(args.items()):
 
         # Operator
-        if name == 'op':
+        if name == "op":
             op = arg
             continue
 
@@ -864,16 +873,18 @@ def write_town(**kwargs):
 
     return True
 
+
 # Return information about the lastClip
 def info_town(filters=None):
 
     corvox = clipToCorvox(lastClip) if lastClip and isClip(lastClip) else None
     if corvox:
         stats = info(corvox, filters)
-        stats['timestamp'] = datetime.now().strftime(TIMESTAMP_FORMAT)
+        stats["timestamp"] = datetime.now().strftime(TIMESTAMP_FORMAT)
         return stats
     else:
         return "No valid clip", datetime.now().strftime(TIMESTAMP_FORMAT)
+
 
 # Perform all operations for flipping the town
 # copy: "None" the town is just flipped, "Ground" a copy is flipped, leveled and merged with original, "Head" a copy is flipped and the original is leveled
@@ -881,13 +892,13 @@ def flip_town(**kwargs):
 
     root.debug(f"Input : {kwargs}")
 
-    copyMode = kwargs.get('copy')
-    copyMode = None if copyMode == 'None' else copyMode
+    copyMode = kwargs.get("copy")
+    copyMode = None if copyMode == "None" else copyMode
 
-    color = kwargs.get('color', 14)
-    color = 14 if color == '' else int(color)
+    color = kwargs.get("color", 14)
+    color = 14 if color == "" else int(color)
 
-    color_filter = kwargs.get('color_filter')
+    color_filter = kwargs.get("color_filter")
     color_filter = None if color_filter == () else color_filter
 
     if lastClip is None or isClip(lastClip) is False:
@@ -909,22 +920,22 @@ def flip_town(**kwargs):
         copyCorvox = dictCopy(corvox)
         copyStats = info(corvox)
         if copyStats:
-            maxH = copyStats['max_height']
+            maxH = copyStats["max_height"]
         else:
             return
 
-    if copyMode == 'Ground':
+    if copyMode == "Ground":
         copyCorvox = level(copyCorvox, maxH, color=color, color_filter=color_filter)
 
     # Flipping of appropriate data
-    corvox = flip(corvox, color , color_filter)
+    corvox = flip(corvox, color, color_filter)
 
-    if copyMode == 'Head':
+    if copyMode == "Head":
         corvox = level(corvox, maxH, color=color, color_filter=color_filter)
 
     # Final merging for copyMode
     if copyMode:
-        corvox = merge('+', copyCorvox, corvox)
+        corvox = merge("+", copyCorvox, corvox)
 
     # Copy to clipboard
     new_clip = corvoxToClip(corvox)
@@ -934,6 +945,7 @@ def flip_town(**kwargs):
 
     # Success
     return True
+
 
 # Store the clip
 def storeClip(clip):
@@ -1422,6 +1434,7 @@ def doCapture(**kwargs):
     else:
         return answer
 
+
 # Fetch from a json the template for town spot
 def loadTempTown(path):
 
@@ -1439,11 +1452,12 @@ def loadTempTown(path):
         return
 
     # Dealing with pictures
-    picture = dictTown['picture']
-    dictTown['picture'] = exePath(picture) if exists(exePath(picture)) else ""
+    picture = dictTown["picture"]
+    dictTown["picture"] = exePath(picture) if exists(exePath(picture)) else ""
 
     # Return
     return dictTown
+
 
 # Gather all town spots and return a dictionary name vs dict
 def getSpots():
@@ -1454,7 +1468,7 @@ def getSpots():
             if ext == ".json":
                 spot = loadTempTown(entry.path)
                 if spot:
-                    dictSpots[spot['name']] = spot
+                    dictSpots[spot["name"]] = spot
                 else:
                     root.debug(f"Bad file : {entry.path}")
 
@@ -1473,10 +1487,10 @@ class Utility(object):
         self.synchro = None  # For capture and showcase
         self.manager = None
 
-        self.prev_clip = None # For clipInfo
+        self.prev_clip = None  # For clipInfo
         self.clipInfo = None
 
-        self.dictSpots = None # For load
+        self.dictSpots = None  # For load
 
         self.init_core()
         self.shortcuts = print_shortcuts()
@@ -1530,7 +1544,7 @@ class Utility(object):
         # Part working with clip (level, paint, ...)
         init_townshell()
 
-        #Load requirement
+        # Load requirement
         self.dictSpots = getSpots()
 
         # Capture part

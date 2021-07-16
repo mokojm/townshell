@@ -28,21 +28,21 @@ TEMP_VOXEL = """
 
 # All available colors
 ALLCOLORS = {
-    0:  {"name": "red",             "coord":(0.925, 0.267, 0.267)},
-    1:  {"name": "orange",          "coord":(0.953, 0.553, 0.357)},
-    2:  {"name": "yellow",          "coord":(0.953, 0.839, 0.400)},
-    3:  {"name": "yellow_green",    "coord":(0.851, 0.914, 0.463)},
-    4:  {"name": "light_green",     "coord":(0.675, 0.765, 0.486)},
-    5:  {"name": "grass_green",     "coord":(0.518, 0.839, 0.384)},
-    6:  {"name": "green",           "coord":(0.271, 0.812, 0.439)},
-    7:  {"name": "green_blue",      "coord":(0.286, 0.784, 0.647)},
-    8:  {"name": "blue",            "coord":(0.286, 0.729, 0.812)},
-    9:  {"name": "deep_blue",       "coord":(0.325, 0.604, 1)},
-    10: {"name": "purple",          "coord":(0.447, 0.475, 0.812)},
-    11: {"name": "mauve",           "coord":(0.725, 0.341, 0.459)},
-    12: {"name": "beige",           "coord":(0.812, 0.667, 0.549)},
-    13: {"name": "brown_gray",      "coord":(0.698, 0.643, 0.616)},
-    14: {"name": "white",           "coord":(0.871, 0.871, 0.871)}
+    0: {"name": "red", "coord": (0.925, 0.267, 0.267)},
+    1: {"name": "orange", "coord": (0.953, 0.553, 0.357)},
+    2: {"name": "yellow", "coord": (0.953, 0.839, 0.400)},
+    3: {"name": "yellow_green", "coord": (0.851, 0.914, 0.463)},
+    4: {"name": "light_green", "coord": (0.675, 0.765, 0.486)},
+    5: {"name": "grass_green", "coord": (0.518, 0.839, 0.384)},
+    6: {"name": "green", "coord": (0.271, 0.812, 0.439)},
+    7: {"name": "green_blue", "coord": (0.286, 0.784, 0.647)},
+    8: {"name": "blue", "coord": (0.286, 0.729, 0.812)},
+    9: {"name": "deep_blue", "coord": (0.325, 0.604, 1)},
+    10: {"name": "purple", "coord": (0.447, 0.475, 0.812)},
+    11: {"name": "mauve", "coord": (0.725, 0.341, 0.459)},
+    12: {"name": "beige", "coord": (0.812, 0.667, 0.549)},
+    13: {"name": "brown_gray", "coord": (0.698, 0.643, 0.616)},
+    14: {"name": "white", "coord": (0.871, 0.871, 0.871)},
 }
 
 # Load the data contained in provided .scape file. Returns a dictionnary containing the coordinates of the corners (key), the amount of voxels linked with a corner, a dictionnary of the voxels linked with that corner.
@@ -172,46 +172,54 @@ def save(dico_corvox, file_path, new_file=None):
 # "-" : voxels of the first dict that are not in other dict
 # "&" : voxels that are common to all dict
 # "^" : gather all voxels in one dict except those which are in more than one dict
-def merge(op='+', *args):
+def merge(op="+", *args):
 
     dictf = args[0]
     for dicti in args[1:]:
 
         for key, count_and_voxels in dicti.items():
 
-            if op == '+':
+            if op == "+":
                 if key in dictf:
                     dictf[key]["voxels"].update(count_and_voxels["voxels"])
                     dictf[key]["count"] = len(dictf[key]["voxels"])
                 else:
                     dictf[key] = count_and_voxels.copy()
 
-            elif op == '-':
+            elif op == "-":
                 if key in dictf:
                     thisKey = dictf[key]["voxels"].copy()
-                    dictf[key]["voxels"] = {h:thisKey[h] for h in set(thisKey) - set(count_and_voxels["voxels"])}
+                    dictf[key]["voxels"] = {
+                        h: thisKey[h]
+                        for h in set(thisKey) - set(count_and_voxels["voxels"])
+                    }
                     dictf[key]["count"] = len(dictf[key]["voxels"])
 
-            elif op == '&':
+            elif op == "&":
                 if key in dictf:
                     thisKey = dictf[key]["voxels"].copy()
-                    dictf[key]["voxels"] = {h:thisKey[h] for h in set(thisKey) & set(count_and_voxels["voxels"])}
+                    dictf[key]["voxels"] = {
+                        h: thisKey[h]
+                        for h in set(thisKey) & set(count_and_voxels["voxels"])
+                    }
                     dictf[key]["count"] = len(dictf[key]["voxels"])
 
-            elif op == '^':
+            elif op == "^":
                 if key in dictf:
                     thisKey = dictf[key]["voxels"].copy()
-                    dictf[key]["voxels"] = {h:thisKey[h] for h in set(thisKey) ^ set(count_and_voxels["voxels"])}
+                    dictf[key]["voxels"] = {
+                        h: thisKey[h]
+                        for h in set(thisKey) ^ set(count_and_voxels["voxels"])
+                    }
                     dictf[key]["count"] = len(dictf[key]["voxels"])
-                else: 
+                else:
                     dictf[key] = count_and_voxels.copy()
 
-        #Intersect specific
-        if op == '&':
+        # Intersect specific
+        if op == "&":
             for key in dictf.copy():
                 if key not in dicti:
                     del dictf[key]
-
 
     # Return
     root.debug(f"Dictf:{dictf}")
@@ -227,7 +235,7 @@ def merge(op='+', *args):
 # plain: If False scafolding of empty space will appear below the leveled structure. If True, the empty space created will be filled by voxels according to the chosen 'color'.
 # color: color applied to new voxels or voxels that were on the ocean floor (color=15)
 # color_filter: only voxels with the selected color will have their height modified. The leveled voxels can take place of another voxel, (2021/07/06: can be a tuple)
-# smart: if true, the color of the lowest voxel will be used to color the new voxels 
+# smart: if true, the color of the lowest voxel will be used to color the new voxels
 # height_filter: only the voxels with the specified height will be affected, tuple accepted
 # count_vox: only corners having the specified amount of voxels matching previous criterias will triggered
 # ground_only: only voxels having only ground level will be modified
@@ -240,13 +248,13 @@ def level(
     plain=False,
     color=14,
     color_filter=None,
-    **kwargs
+    **kwargs,
 ):
-    
-    smart = kwargs.get('smart', True)
-    height_filter = kwargs.get('height_filter')
-    count_vox = kwargs.get('count_vox')
-    ground_only = kwargs.get('ground_only', False)
+
+    smart = kwargs.get("smart", True)
+    height_filter = kwargs.get("height_filter")
+    count_vox = kwargs.get("count_vox")
+    ground_only = kwargs.get("ground_only", False)
 
     # Color is None
     if color is None:
@@ -267,7 +275,7 @@ def level(
 
         cur_voxels = count_and_voxels["voxels"]
 
-        countVoxOk = False if count_vox else True # by default
+        countVoxOk = False if count_vox else True  # by default
 
         # Coord
         if coord is None:
@@ -281,7 +289,13 @@ def level(
             cur_voxels[-1] = 15
 
         # GroundOnly handling
-        if ground_only is None or ground_only is False or ground_only and len(cur_voxels) == 1 and cur_voxels.get(0):
+        if (
+            ground_only is None
+            or ground_only is False
+            or ground_only
+            and len(cur_voxels) == 1
+            and cur_voxels.get(0)
+        ):
             groundOnlyOk = True
         else:
             groundOnlyOk = False
@@ -290,11 +304,14 @@ def level(
         if count_vox:
             voxelsOk = 0
             for h, t in cur_voxels.items():
-                hfOK = False #Height filter
-                cfOk = False #Color filter
+                hfOK = False  # Height filter
+                cfOk = False  # Color filter
 
                 # Height filter
-                if isinstance(height_filter, tuple) and height_filter[0] <= h <= height_filter[1]:
+                if (
+                    isinstance(height_filter, tuple)
+                    and height_filter[0] <= h <= height_filter[1]
+                ):
                     hfOk = True
                 elif height_filter and h == height_filter:
                     hfOk = True
@@ -312,7 +329,7 @@ def level(
                 voxelsOk += 1 if hfOk and cfOk else 0
 
             countVoxOk = True if voxelsOk == count_vox else False
-                
+
         # If color = None : Fetching the color of the closest to the floor or the one on min_height
         if smart:
             positive_heights = [
@@ -340,7 +357,10 @@ def level(
                 continue
 
             # Height filter handling
-            elif (isinstance(height_filter, tuple) and (h < height_filter[0] or h > height_filter[1])) or (isinstance(height_filter, int) and h != height_filter):
+            elif (
+                isinstance(height_filter, tuple)
+                and (h < height_filter[0] or h > height_filter[1])
+            ) or (isinstance(height_filter, int) and h != height_filter):
                 new_voxels[h] = t
                 root.debug(f"Height filter : {(h,t)}")
                 continue
@@ -429,7 +449,9 @@ def level(
 # height: only the voxels with the specified height will be affected, tuple accepted
 # corner: dig corners instead of voxels, color_filter and height filter are ignored
 # maxhf: max height filter, filter voxels that will be dig depending on the max height of their corner
-def dig(dico_corvox, color_filter=None, percent=1, height=None, corner=False, maxhf=None):
+def dig(
+    dico_corvox, color_filter=None, percent=1, height=None, corner=False, maxhf=None
+):
 
     # A copy of dico_corvox is browsed
     # Warning! count_and_voxels even it's a copy will point the actual item of dico_corvox
@@ -440,23 +462,27 @@ def dig(dico_corvox, color_filter=None, percent=1, height=None, corner=False, ma
 
         # Max height filter
         if maxhf:
-            maxhf = maxhf[0] #because it's a tuple of tuple by default
+            maxhf = maxhf[0]  # because it's a tuple of tuple by default
             thisMaxH = max(cur_voxels)
 
-            #Tuple
-            if isinstance(maxhf, tuple) and maxhf != () and (thisMaxH < maxhf[0] or thisMaxH > maxhf[1]):
+            # Tuple
+            if (
+                isinstance(maxhf, tuple)
+                and maxhf != ()
+                and (thisMaxH < maxhf[0] or thisMaxH > maxhf[1])
+            ):
                 continue
 
-            #Int
+            # Int
             elif isinstance(maxhf, int) and maxhf != thisMaxH:
                 continue
 
-        #Corner setting (other filters except max height filter are ignored)
+        # Corner setting (other filters except max height filter are ignored)
         if corner is True:
             if random() < percent:
                 dico_corvox[(x, y)]["voxels"] = {}
-            continue    
-            
+            continue
+
         # Browse voxels :
         # 1) Each criteria is checked and a boolean is set True. All boolean need to be true for the color to be applied
         # 2) The color is determined
@@ -542,7 +568,7 @@ def paint(
     column=None,
     coord=(),
     details=None,
-    alternate=False
+    alternate=False,
 ):
 
     # Basic control on entry
@@ -553,12 +579,10 @@ def paint(
     if isinstance(color, tuple) and alternate:
         cycleCol = cycle(color)
 
-    elif color == 'random' and alternate:
+    elif color == "random" and alternate:
         cycleCol = cycle(ALLCOLORS)
     else:
         cycleCol = None
-
-
 
     # A copy of dico_corvox is browsed
     # Warning! count_and_voxels even it's a copy will point the actual item of dico_corvox
@@ -630,7 +654,7 @@ def paint(
             # Determine colors
             new_t = t  # (that line is just here prevent any obscure reason that would bring new_t not to be found through following statements)
 
-            #Alternate
+            # Alternate
             if cycleCol:
                 new_t = next(cycleCol)
             # Random
@@ -754,8 +778,7 @@ def prepare_text(**kwargs):
     for letter in textCopy:
         render = font.renderText(letter)
         if render == "":
-            text = text.replace(letter, '')
-
+            text = text.replace(letter, "")
 
     MAX_HEIGHT = 255
 
@@ -855,7 +878,7 @@ def prepare_text(**kwargs):
                         oneCharFound = True
 
                 # Deleting spaces at the end and begining
-                #root.debug(f"s,e : {spaceStart, spaceEnd}")
+                # root.debug(f"s,e : {spaceStart, spaceEnd}")
                 renderLines = (
                     list(map(lambda x: x[spaceStart:-spaceEnd], renderLines))
                     if spaceEnd != 0
@@ -1208,6 +1231,7 @@ def flip(
     # Return
     return dico_corvox
 
+
 # Statistics about the dictionary given
 # nb_corners: amount of corners
 # nb_voxels: amount of voxels
@@ -1233,18 +1257,59 @@ def flip(
 # filters: list of statistics to be returned among exposed ones over there
 def info(dico_corvox, filters=None):
 
-    stats = {'timestamp':0, 'nb_corners':0, 'nb_voxels':0, 'max_height':0, 'min_height':0, 'mean_height':0, 'var_height':[], 'max_nb_height':0, '1st_height':0, '2nd_height':0, 'nb_colors':set(), 'mean_color':[], 'var_color':[], 'mean_col_vs_cor':0, 'max_col_vs_cor':0, 'least_color':0, '1st_color':0, '2nd_color':0, 'ground_only':0, 'no_ground':0, 'mean_x': 0, 'mean_y': 0, 'var_x': [], 'var_y': [] }
-    color_count = {0:0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0, 10:0, 11:0, 12:0, 13:0, 14:0, 15:0}
+    stats = {
+        "timestamp": 0,
+        "nb_corners": 0,
+        "nb_voxels": 0,
+        "max_height": 0,
+        "min_height": 0,
+        "mean_height": 0,
+        "var_height": [],
+        "max_nb_height": 0,
+        "1st_height": 0,
+        "2nd_height": 0,
+        "nb_colors": set(),
+        "mean_color": [],
+        "var_color": [],
+        "mean_col_vs_cor": 0,
+        "max_col_vs_cor": 0,
+        "least_color": 0,
+        "1st_color": 0,
+        "2nd_color": 0,
+        "ground_only": 0,
+        "no_ground": 0,
+        "mean_x": 0,
+        "mean_y": 0,
+        "var_x": [],
+        "var_y": [],
+    }
+    color_count = {
+        0: 0,
+        1: 0,
+        2: 0,
+        3: 0,
+        4: 0,
+        5: 0,
+        6: 0,
+        7: 0,
+        8: 0,
+        9: 0,
+        10: 0,
+        11: 0,
+        12: 0,
+        13: 0,
+        14: 0,
+        15: 0,
+    }
     height_count = {}
-
 
     for (x, y), c_voxels in dico_corvox.items():
 
-        stats['nb_corners'] += 1
-        stats['mean_x'] += x
-        stats['mean_y'] += y
-        stats['var_x'].append(x)
-        stats['var_y'].append(y)
+        stats["nb_corners"] += 1
+        stats["mean_x"] += x
+        stats["mean_y"] += y
+        stats["var_x"].append(x)
+        stats["var_y"].append(y)
         maxh = 0
         minh = 0
         seqColors = set()
@@ -1253,9 +1318,9 @@ def info(dico_corvox, filters=None):
         groundOnlyTrig = False
         noGround = True
 
-        for h, t in c_voxels['voxels'].items():
-            stats['nb_voxels'] += 1
-            
+        for h, t in c_voxels["voxels"].items():
+            stats["nb_voxels"] += 1
+
             maxh = max(h, maxh)
             minh = min(h, minh)
             seqHeights.add(h)
@@ -1264,13 +1329,13 @@ def info(dico_corvox, filters=None):
                 height_count[h] += 1
             else:
                 height_count[h] = 1
-            
+
             seqColors.add(t)
-            stats['nb_colors'].add(t)
+            stats["nb_colors"].add(t)
             if t != 15:
-                stats['var_color'].append(t)
-                stats['mean_color'].append(ALLCOLORS[t]['coord'])
-            
+                stats["var_color"].append(t)
+                stats["mean_color"].append(ALLCOLORS[t]["coord"])
+
             color_count[t] += 1
 
             if t == 15:
@@ -1279,49 +1344,58 @@ def info(dico_corvox, filters=None):
             else:
                 groundOnlyTrig = False
 
-
-        stats['max_height'] = max(stats['max_height'], maxh)
-        stats['min_height'] = min(stats['max_height'], minh)
-        stats['max_nb_height'] = max(stats['max_nb_height'], len(seqHeights))
-        stats['var_height'].append(maxh)
-        stats['mean_height'] += maxh
+        stats["max_height"] = max(stats["max_height"], maxh)
+        stats["min_height"] = min(stats["max_height"], minh)
+        stats["max_nb_height"] = max(stats["max_nb_height"], len(seqHeights))
+        stats["var_height"].append(maxh)
+        stats["mean_height"] += maxh
 
         if groundOnlyTrig:
-            stats['ground_only'] += 1
-        
+            stats["ground_only"] += 1
+
         if noGround:
-            stats['no_ground'] += 1
+            stats["no_ground"] += 1
 
-        stats['mean_col_vs_cor'] += len(seqColors)
-        stats['max_col_vs_cor'] = max(stats['max_col_vs_cor'], len(seqColors))
+        stats["mean_col_vs_cor"] += len(seqColors)
+        stats["max_col_vs_cor"] = max(stats["max_col_vs_cor"], len(seqColors))
 
-    stats['mean_height'] /= stats['nb_corners']
-    stats['var_height'] = pvariance(stats['var_height'], stats['mean_height'])
-    
-    height_count = sorted(height_count.items(), key = lambda x: x[1], reverse=True)
-    stats['1st_height'] = height_count[0][0]
-    stats['2nd_height'] = height_count[1][0] if len(height_count) > 1 else 0
+    stats["mean_height"] /= stats["nb_corners"]
+    stats["var_height"] = pvariance(stats["var_height"], stats["mean_height"])
 
-    stats['nb_colors'] = len(stats['nb_colors'])
-    tmp = stats['mean_color']
-    stats['mean_color'] = (mean([a[0] for a in tmp]), mean([a[1] for a in tmp]), mean([a[2] for a in tmp])) if tmp != [] else (0,0,0)
-    stats['var_color'] = pvariance(stats['var_color']) if stats['var_color'] != [] else 0
-    
-    color_count = sorted(color_count.items(), key = lambda x: x[1])
-    stats['1st_color'] = color_count[-1][0]
-    stats['2nd_color'] = color_count[-2][0]
-    stats['least_color'] = color_count[0][0]
+    height_count = sorted(height_count.items(), key=lambda x: x[1], reverse=True)
+    stats["1st_height"] = height_count[0][0]
+    stats["2nd_height"] = height_count[1][0] if len(height_count) > 1 else 0
 
-    stats['mean_col_vs_cor'] /= stats['nb_corners']
+    stats["nb_colors"] = len(stats["nb_colors"])
+    tmp = stats["mean_color"]
+    stats["mean_color"] = (
+        (
+            mean([a[0] for a in tmp]),
+            mean([a[1] for a in tmp]),
+            mean([a[2] for a in tmp]),
+        )
+        if tmp != []
+        else (0, 0, 0)
+    )
+    stats["var_color"] = (
+        pvariance(stats["var_color"]) if stats["var_color"] != [] else 0
+    )
 
-    stats['mean_x'] /= stats['nb_corners']
-    stats['mean_y'] /= stats['nb_corners']
-    stats['var_x'] = pvariance(stats['var_x'], stats['mean_x'])
-    stats['var_y'] = pvariance(stats['var_y'], stats['mean_y'])
+    color_count = sorted(color_count.items(), key=lambda x: x[1])
+    stats["1st_color"] = color_count[-1][0]
+    stats["2nd_color"] = color_count[-2][0]
+    stats["least_color"] = color_count[0][0]
 
-    #Handling filters
+    stats["mean_col_vs_cor"] /= stats["nb_corners"]
+
+    stats["mean_x"] /= stats["nb_corners"]
+    stats["mean_y"] /= stats["nb_corners"]
+    stats["var_x"] = pvariance(stats["var_x"], stats["mean_x"])
+    stats["var_y"] = pvariance(stats["var_y"], stats["mean_y"])
+
+    # Handling filters
     if isinstance(filters, list):
-        stats = {key:value for key,value in stats.items() if key in filters}
+        stats = {key: value for key, value in stats.items() if key in filters}
 
     return stats
 

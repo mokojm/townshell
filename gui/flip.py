@@ -20,13 +20,12 @@ class FlipScreen(Screen):
             if child.name == "colspin" and child.text != ""
         )
 
-
         settings = {
             "color_filter": filters,
             "color": self.box_newc.mync.text,
             "copy": self.box_cop.cop.text,
         }
-        #print(settings)
+        # print(settings)
 
         myPopUp = Factory.NotifPopUp()
         myPopUp.title = "Flip"
@@ -40,5 +39,5 @@ class FlipScreen(Screen):
 
     def reset(self):
         self.box_newc.mync.text = ""
-        self.box_cop.cop.text = 'None'
+        self.box_cop.cop.text = "None"
         self.box_filter.reset()

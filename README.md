@@ -6,7 +6,9 @@
 </a>
 </p>
 
-New release."Write" feature is available. See [Write](#write) to have best practice tips.
+Townshell v2.2  : "Write" feature added. "Flip" and "Load" screens added. "Merge" and "Level" have new options.
+
+**Youtube :** [![Townshell_Youtube](/ReadMePictures/Townshellv22.png)](https://youtu.be/UQdg0VXCkXE)
 
 ![TownShell_write_font](/Pictures/Write_font.gif)
 
@@ -15,8 +17,6 @@ Wanna save some clicks on [Townscaper](https://store.steampowered.com/app/129134
 Get additional keyboard shortcuts to relax your fingers while building your town.
 
 Get access to useful tools to accelerate your building process. Change the height of many blocks at a time. Change the color of your whole structure with a few words.
-
-**Youtube :** [![Townshell_Youtube](http://img.youtube.com/vi/QA5MrFqmpVY/0.jpg)](http://www.youtube.com/watch?v=QA5MrFqmpVY)
 
 # Quickstart
 Download "TownShell.exe" [here](https://github.com/mokojm/townshell/releases/download/v2.1-beta1/TownShell.exe),
@@ -52,6 +52,8 @@ Explore this file for more features
 	- [Merge](#merge)
 	- [Capture](#capture)
 	- [Write](#write)
+	- [Flip](#flip)
+	- [Load](#load)
 3) [Details](#details)
 	- [Advanced installation](#advanced-installation)
 	- [Shortcuts configuration](#shortcuts-configuration)
@@ -121,7 +123,7 @@ Note that your original file is not modified.
 
 ## Paint
 
-![Paint_example](/ReadMePictures/Paint.gif)
+![Paint_example](/ReadMePictures/LevelScreen.PNG)
 
 'paint' command give you the ability to change the color of many blocks at a time with a bunch of options.
 To use it, click "Save to Clipboard" on the structure you want the height to change, 
@@ -140,7 +142,7 @@ Note that your original file is not modified.
 
 ## Merge
 
-![Merge_example](/ReadMePictures/Merge.gif)
+![Merge_example](/ReadMePictures/MergeScreen.png)
 
 ## Capture
 
@@ -160,6 +162,7 @@ Tips :
 - If you want to record Townscaper with no move, set Distance to 0 and press 'Record'
 
 ## Write
+
 ![TownShell_write_screen](/ReadMePictures/WriteScreen.png) ![TownShell_write_font](/Pictures/Write_font.gif)
 
 Many options are available using "Advanced" field, it follows JSON format, example :
@@ -190,6 +193,16 @@ The following ones can be used and would override values of the GUI.
 - wallpath:
 
 Tip : If you do not input any text you might get a surprise after clicking "Save to Clipboard" and loading the build in Townscaper ;-)
+
+## Flip
+
+![TownShell_flip_screen](/ReadMePictures/FlipScreen.png)
+
+## Load
+
+![TownShell_flip_screen](/ReadMePictures/LoadScreen.png)
+
+A lot of templates are available for you start building on them.
 
 # Details
 
@@ -251,15 +264,7 @@ To sort corners, Townshell will use the maximum height of voxels on that corners
 # Future releases
 
 Here are a few stuffs I'd like to add, implementation is not guaranteed :
-- "Flip" menu to flip your structure upside down
-- "Merge" add operations like "Union", "Intersection", "Diff"
-- "Load" a repository of nice building spots
-- "Reset" button on each screen
 - "Capture" : make it more intuitive, add "Register Move"
-
-- Add "Ground color" to be filtered in "Level", "Dig" and "Replicate" screen
-- Multiple color filter in "Level" and "Replicate"
-- Multiple height filters in "Paint" + add height filter in other screens
 
 
 # Contributing

@@ -8,26 +8,27 @@ from kivy.uix.screenmanager import Screen
 
 Builder.load_file(r"gui\load.kv")
 
+
 class BoxSpot(FloatLayout):
 
     spot = ObjectProperty(None)
 
     def __init__(self, **kwargs):
-        
+
         super(BoxSpot, self).__init__(**kwargs)
-        self.spot = kwargs.get('spot')
+        self.spot = kwargs.get("spot")
 
     def getName(self):
-        return self.spot['name']
+        return self.spot["name"]
 
     def getPicture(self):
-        return self.spot['picture']
+        return self.spot["picture"]
 
     def getTags(self):
-        return self.spot['tags'].replace(";", " ; ")
+        return self.spot["tags"].replace(";", " ; ")
 
     def getComment(self):
-        return self.spot['comment']
+        return self.spot["comment"]
 
     def save_to_clipboard(self):
         myPopUp = Factory.NotifPopUp()
@@ -35,10 +36,10 @@ class BoxSpot(FloatLayout):
         myPopUp.level = "INFO"
         myPopUp.open()
 
-class BoxTags(FloatLayout):
 
+class BoxTags(FloatLayout):
     def __init__(self, **kwargs):
-        
+
         self.util = App.get_running_app().util
         super(BoxTags, self).__init__(**kwargs)
 
@@ -46,7 +47,7 @@ class BoxTags(FloatLayout):
         tags = set()
 
         for spot in self.util.dictSpots.values():
-            for tag in spot['tags'].split(';'):
+            for tag in spot["tags"].split(";"):
                 tags.add(tag)
 
         tags = list(tags)
@@ -67,13 +68,13 @@ class LoadScreen(Screen):
         self.screenInitialized = False
 
     def on_win_height(self):
-        return Window.height*0.2
+        return Window.height * 0.2
 
     def initScreen(self, filt=None):
-        boxHeight=250
+        boxHeight = 250
         if self.screenInitialized is False:
             for spot in self.util.dictSpots.values():
-                if filt is None or filt == 'All' or filt in spot['tags']:
+                if filt is None or filt == "All" or filt in spot["tags"]:
                     newWidget = BoxSpot(size_hint_y=None, spot=spot)
                     newWidget.height = boxHeight
                     newWidget.bind(height=self.on_win_height)

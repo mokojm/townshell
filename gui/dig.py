@@ -17,7 +17,6 @@ class DigScreen(Screen):
         self.max_pos_hint = None
         self.cor_pos_hint = None
 
-        
     def initSwitch(self):
         self.box_cor.myplain.bind(active=self.cornerSwitch)
         self.hf_pos_hint = self.box_hf.pos_hint
@@ -28,10 +27,10 @@ class DigScreen(Screen):
     def cornerSwitch(self, *args):
         if self.box_cor.myplain.active is True:
             self.box_hf.opacity = 0
-            self.box_hf.pos_hint = {'x':0, 'y':2}
+            self.box_hf.pos_hint = {"x": 0, "y": 2}
 
             self.box_filter.opacity = 0
-            self.box_filter.pos_hint = {'x':0, 'y':2}
+            self.box_filter.pos_hint = {"x": 0, "y": 2}
 
             self.box_max.pos_hint = self.filter_pos_hint
             self.box_cor.pos_hint = self.hf_pos_hint
@@ -43,7 +42,6 @@ class DigScreen(Screen):
             self.box_filter.pos_hint = self.filter_pos_hint
             self.box_max.pos_hint = self.max_pos_hint
             self.box_cor.pos_hint = self.cor_pos_hint
-
 
     def save_to_clipboard(self):
 
@@ -68,10 +66,9 @@ class DigScreen(Screen):
             "cf": filters,
             "height": hf_filter,
             "maxhf": maxhf_filter,
-            "corner": self.box_cor.myplain.active
-
+            "corner": self.box_cor.myplain.active,
         }
-        #print(settings)
+        # print(settings)
 
         myPopUp = Factory.NotifPopUp()
         myPopUp.title = "Dig"

@@ -48,8 +48,6 @@ class WriteScreen(Screen):
         self.box_color.reset()
         self.box_adv.clip_text.text = ""
 
-
-
     def save_to_clipboard(self):
 
         # Colors handling

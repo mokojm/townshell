@@ -133,13 +133,13 @@ class BoxColor(FloatLayout):
             return
         else:
             cSpinner = ColorSpinner(
-                    pos_hint={
-                        "x": self.add_button.pos_hint["x"],
-                        "center_y": self.add_button.pos_hint["center_y"],
-                    },
-                    size=(30, 30),
-                    values=self.values,
-                )
+                pos_hint={
+                    "x": self.add_button.pos_hint["x"],
+                    "center_y": self.add_button.pos_hint["center_y"],
+                },
+                size=(30, 30),
+                values=self.values,
+            )
             self.add_widget(cSpinner)
             self.add_button.pos_hint = {
                 "x": self.add_button.pos_hint["x"] + 0.2,
@@ -147,7 +147,7 @@ class BoxColor(FloatLayout):
             }
             cSpinner.trigger_action()
 
-        #Complementary function
+        # Complementary function
         self.addCompFunc()
 
     def del_color(self):
@@ -158,18 +158,17 @@ class BoxColor(FloatLayout):
                 "center_y": self.add_button.pos_hint["center_y"],
             }
 
-        #Complementary function
+        # Complementary function
         self.delCompFunc()
 
     def reset(self):
         for child in self.children[:]:
-            if 'colspin' in child.name:
+            if "colspin" in child.name:
                 self.remove_widget(child)
                 self.add_button.pos_hint = {
-                "x": self.add_button.pos_hint["x"] - 0.2,
-                "center_y": self.add_button.pos_hint["center_y"],
+                    "x": self.add_button.pos_hint["x"] - 0.2,
+                    "center_y": self.add_button.pos_hint["center_y"],
                 }
-
 
 
 class BoxUpDown(FloatLayout):
@@ -254,7 +253,6 @@ class BoxHeightFilter(FloatLayout):
 
 
 class BoxClipInfo(FloatLayout):
-
     def __init__(self, **kwargs):
         self.util = App.get_running_app().util
         super(BoxClipInfo, self).__init__(**kwargs)
@@ -263,23 +261,22 @@ class BoxClipInfo(FloatLayout):
 
     def update(self, _):
         if self.util.clipInfo is None:
-            self.timest.text = 'No valid clip'
-            self.corner.text = ''
-            self.voxel.text = ''
-            self.maxh.text = ''
+            self.timest.text = "No valid clip"
+            self.corner.text = ""
+            self.voxel.text = ""
+            self.maxh.text = ""
 
         elif isinstance(self.util.clipInfo, tuple):
             self.timest.text = self.util.clipInfo[1]
             self.corner.text = self.util.clipInfo[0]
-            self.voxel.text = ''
-            self.maxh.text = ''
+            self.voxel.text = ""
+            self.maxh.text = ""
 
         else:
-            self.timest.text = self.util.clipInfo['timestamp']
+            self.timest.text = self.util.clipInfo["timestamp"]
             self.corner.text = f"[u]corners[/u] : {self.util.clipInfo['nb_corners']}"
             self.voxel.text = f"[u]voxels[/u] : {self.util.clipInfo['nb_voxels']}"
             self.maxh.text = f"[u]max height[/u] : {self.util.clipInfo['max_height']}"
-
 
     def statShow(self):
 
@@ -307,16 +304,23 @@ Amount of ground only corners : {ground_only}
 Corners without ground voxel : {no_ground}
 
 Center coordinates : {mean_x}, {mean_y}"""
-        
+
         if isinstance(self.util.clipInfo, dict):
             for key, value in self.util.clipInfo.items():
-                myText = myText.replace("{"+key+"}", str(round(value, 1)) if isinstance(value, float) else str(value))
-            fileName = self.util.clipInfo['timestamp'].replace("/","").replace(":","-")
+                myText = myText.replace(
+                    "{" + key + "}",
+                    str(round(value, 1)) if isinstance(value, float) else str(value),
+                )
+            fileName = (
+                self.util.clipInfo["timestamp"].replace("/", "").replace(":", "-")
+            )
         else:
-            myText = "I guess you were expecting something so here is a happy face *(^_^)*"
-            fileName = 'nothing.txt'
+            myText = (
+                "I guess you were expecting something so here is a happy face *(^_^)*"
+            )
+            fileName = "nothing.txt"
 
-        #Creating the PopUp
+        # Creating the PopUp
         myPopUp = Factory.StatPopUp()
         myPopUp.mytext = myText
         myPopUp.fileName = fileName

@@ -33,8 +33,13 @@ class PaintScreen(Screen):
         hfe = int(self.box_hf.hfe.value)
         hf_filter = hfs if hfs == hfe else ((hfs, hfe),)
 
-        settings = {"color": colors, "cf": filters, "height": hf_filter, "alternate":self.box_alt.myplain.active}
-        #print(settings)
+        settings = {
+            "color": colors,
+            "cf": filters,
+            "height": hf_filter,
+            "alternate": self.box_alt.myplain.active,
+        }
+        # print(settings)
 
         myPopUp = Factory.NotifPopUp()
         myPopUp.title = "Paint"

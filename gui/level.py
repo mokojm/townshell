@@ -42,8 +42,8 @@ class LevelScreen(Screen):
         settings = {
             "height": int(self.box_height.myheight.value),
             "plain": self.box_plain.myplain.active,
-            "ground_only": True if self.box_opt.opt.text == 'Ground only' else False,
-            "smart": True if self.box_opt.opt.text == 'Smart' else False,
+            "ground_only": True if self.box_opt.opt.text == "Ground only" else False,
+            "smart": True if self.box_opt.opt.text == "Smart" else False,
             "height_filter": hf_filter,
             "cf": filters,
             "color": self.box_newc.mync.text,
@@ -60,10 +60,10 @@ class LevelScreen(Screen):
         myPopUp.open()
 
     def reset(self):
-        self.box_height.myheight.value =0
+        self.box_height.myheight.value = 0
         self.box_newc.mync.text = ""
         self.box_plain.myplain.active = False
-        self.box_opt.opt.text = 'None'
+        self.box_opt.opt.text = "None"
         self.box_hf.hfs.value = 0
         self.box_hf.hfe.value = 255
         self.box_fc.reset()
