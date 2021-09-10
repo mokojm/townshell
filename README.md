@@ -1,4 +1,5 @@
 # TownShell
+Download "TownShell.exe" here
 
 <p align="center">
 <a href="./Pictures/TownShell.ico">
