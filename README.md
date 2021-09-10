@@ -63,7 +63,7 @@ Explore this file for more features
 
 # Installation
 
-The easiest way to get started is by following the link [here](https://github.com/mokojm/townshell/releases/download/v1.0/TownShell.exe)
+The easiest way to get started is by following the link [here](https://github.com/mokojm/townshell/releases/download/v2.2/TownShell.exe)
 
 For advanced users familiar with Python and Kivy, see [Advanced installation](#advanced-installation)
 
