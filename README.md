@@ -1,5 +1,5 @@
 # TownShell
-Download "TownShell.exe" here
+Download "TownShell.exe" [here](https://github.com/mokojm/townshell/releases/download/v2.2/TownShell.exe),
 
 <p align="center">
 <a href="./Pictures/TownShell.ico">
